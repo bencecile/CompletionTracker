@@ -1,0 +1,27 @@
+# Planned Features
+- Be able to create a card for each game that you complete
+    - It should have the console, the name, maybe the year, and an image for the background
+    - Add something special for games that are 100% complete (maybe a gold star or trophy, or gold outlined card (like foil))
+    - Be able to pick the ones you want to be collated on different sizes of paper, for printing
+- Create stats for the games played
+    - Conglomerate the different platforms
+    - Stats like trophies per day, with more good ideas on https://psnprofiles.com/ProdigalPhoenix
+- "Link" Steam, PSN and XBOX Live
+    - Publically available information only. I don't want to deal with logins from my site
+    - Grab % complete achievements stats for the game
+- Be able to scrape http://yomou.syosetu.com/ for the online novels
+    - Just info and stats about each one, not the actual text
+- Create a tool for admins to use to actually create the series of sources
+    - Handcrafting everything in JSON is prone to error and time-expensive
+        - Just be able to export the current structure to a folder, then read them in on start-up
+- Create a graph showing all of the things that have been completed over time
+    - Should be zoomable, and collect items on the month or year when zoomed out too far
+- Create a list of things to do (games, movies, etc.)
+    - Each item by default shouldn't have a priority (below anything that does have a priority)
+    - General priorities can be given (1 - 5)
+    - Each priority has a sub-priority to make it even more specific (nothing by default)
+        - Follow the same default no-priority sorting rules as above
+    - Should be generic and pertain to the item (play a game, watch a show)
+        - Could get more specific (read book 2 of a series, or 100% a game)
+    - They should disappear and be marked as done (hidden but expandable) automatically when something for the item is complete (a game has been started to be played)
+        - Keep track of its old priority of when it was taken off this list

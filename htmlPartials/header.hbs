@@ -1,0 +1,44 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <ul class="navbar-nav mr-auto">
+        <!-- The link to home -->
+        <li class="nav-item active">
+            <a class="nav-link" href="/">Home</a>
+        </li>
+    </ul>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/sources">Sources</a>
+            </li>
+            <!-- The link to the currently selected user's stats -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    My Stuff
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdownUser">
+                    <a class="dropdown-item" href="#">Trackers</a>
+                    <a class="dropdown-item" href="#">Stats</a>
+                    <a class="dropdown-item" href="#">Wishlist</a>
+                </div>
+            </li>
+            <!-- A dropdown menu for other application management things -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownManage" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Management
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdownManage">
+                    <a class="dropdown-item" href="#">Settings</a>
+                    <div class="dropdown-divider"></div>
+                    <!-- Right now we're opening another tab. Might want to do something else -->
+                    <form class="form-inline" action="/shutdown" method="POST" target="_blank">
+                        <input class="dropdown-item" type="submit" value="Shut down">
+                    </form>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>

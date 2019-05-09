@@ -3,6 +3,10 @@
     - It should have the console, the name, maybe the year, and an image for the background
     - Add something special for games that are 100% complete (maybe a gold star or trophy, or gold outlined card (like foil))
     - Be able to pick the ones you want to be collated on different sizes of paper, for printing
+    - Have a couple different backs to choose from
+        - This will only be able to work with double-sided printers
+    - It might be cool if there was something that you could physically put on a card after you've got it to 100% completion
+        - This way, you could print the card before you've 100%'ed it (You might not know if you can or will 100% a game)
 - Create stats for the games played
     - Conglomerate the different platforms
     - Stats like trophies per day, with more good ideas on https://psnprofiles.com/ProdigalPhoenix
@@ -13,9 +17,9 @@
     - Just info and stats about each one, not the actual text
 - Create a tool for admins to use to actually create the series of sources
     - Handcrafting everything in JSON is prone to error and time-expensive
-        - Just be able to export the current structure to a folder, then read them in on start-up
 - Create a graph showing all of the things that have been completed over time
     - Should be zoomable, and collect items on the month or year when zoomed out too far
+    - Should be filterable by source type, time
 - Create a list of things to do (games, movies, etc.)
     - Each item by default shouldn't have a priority (below anything that does have a priority)
     - General priorities can be given (1 - 5)
@@ -25,3 +29,17 @@
         - Could get more specific (read book 2 of a series, or 100% a game)
     - They should disappear and be marked as done (hidden but expandable) automatically when something for the item is complete (a game has been started to be played)
         - Keep track of its old priority of when it was taken off this list
+- Be able to sort the sources in a series either chronologically, or by release date
+    - The same goes for the series in a Universe (if applicable)
+- Be able to input mutliple completions of a source (re-watching or re-playing)
+    - For games, be able to manually set the time played if there aren't linked services that keep track
+    - Have a button to fill in the date as "Today", or have a manual input
+        - Validate the date as YYYY-MM-DD
+    - For games, a separate playthrough tracker might need to be set up to link the normal completion and 100% completion
+        - This could just be a second completion after the normal one
+    - If a game gets completed automatically from a service, the ability to edit time played is a must
+
+# Linked Resources
+## Sources
+- Link a movie or TV Show that used a book as its base (ex. manga->anime adaptation)
+- A VGMdb link to the source, if there one exists (music for the source)

@@ -1,0 +1,35 @@
+<html>
+    <head>
+        {{> html_head}}
+    </head>
+    <body>
+        {{> header}}
+
+        <div class="container">
+            <h2>{{lang.universe_new}}</h2>
+            <form method="POST" action="/sources/universe/new">
+                {{!-- We need a language selection picker --}}
+                <div class="form-group">
+                    <label for="lang">{{lang.lang}}</label>
+                    <select id="lang">
+                        {{#each langs}}
+                        <option value="{{this}}">{{lookup lang this}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                
+                {{!-- We will need the name of the universe --}}
+                <div class="form-group">
+                    <label for="name">{{lang.name}}</label>
+                    <input type="text" class="form-input" id="name">
+                </div>
+
+                {{!-- Be able to create a list of links --}}
+
+                <input class="form-input" type="submit" value="{{lang.create}}">
+            </form>
+        </div>
+
+        {{> footer}}
+    </body>
+</html>

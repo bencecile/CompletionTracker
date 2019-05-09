@@ -1,0 +1,31 @@
+<html>
+    <head>
+        {{> html_head}}
+    </head>
+    <body>
+        {{> header}}
+
+        <div class="container">
+            {{!-- Include a search box to find sources, universes, series, or arcs --}}
+            {{> sources_search}}
+            <div class="row">
+                <div class="col selection_box">
+                    <a class="text-center" href="/sources/new">
+                        <h3>Create a new source</h3>
+                    </a>
+                </div>
+                <div class="col selection_box">
+                    <a class="text-center" href="/sources/universes">
+                        <h3>Browse Universes</h3>
+                    </a>
+                </div>
+                <div class="col selection_box">
+                    <h3>Source Stats</h3>
+                    <!-- Make a simple table for some basic stats that make sense at a glance -->
+                </div>
+            </div>
+        </div>
+
+        {{> footer}}
+    </body>
+</html>

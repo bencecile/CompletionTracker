@@ -2,6 +2,22 @@
 name = "complete-tracker"
 version = "0.1.0"
 authors = ["Benjamin Cecile <bencecile@gmail.com>"]
+edition = "2018"
 
 [dependencies]
-actix-web = "0.7.13"
+# The HTTP server
+rouille = "3.0.0"
+
+# The HTML rendering engine
+handlebars = "1.1.0"
+
+# Use Serde's JSON library for JSON serialization
+serde = "1.0.90"
+serde_derive = "1.0.90"
+serde_json = "1.0.39"
+
+# The HTTP client to make calls elsewhere
+reqwest = "0.9.16"
+
+# For dates and other time related utilities
+time = "0.1.42"

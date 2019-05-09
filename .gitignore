@@ -1,2 +1,5 @@
 /target
 **/*.rs.bk
+
+# Ignore the specific (and possibly sensitive) json file
+/runInfo.json

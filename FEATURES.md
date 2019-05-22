@@ -1,7 +1,7 @@
 # Planned Features
 - Be able to create a card for each game that you complete
     - It should have the console, the name, maybe the year, and an image for the background
-    - Add something special for games that are 100% complete (maybe a gold star or trophy, or gold outlined card (like foil))
+    - Add something special for games that are 100% complete (maybe a gold star or trophy, and/or gold outlined card (like foil))
     - Be able to pick the ones you want to be collated on different sizes of paper, for printing
     - Have a couple different backs to choose from
         - This will only be able to work with double-sided printers

@@ -6,6 +6,8 @@ use serde_derive::{Deserialize};
 use crate::tracking::{Tracker};
 use crate::utils;
 
+const RUN_INFO_FILE: &'static str = "runInfo.json";
+
 /// Holds any info needed when running the server
 #[derive(Debug, Deserialize)]
 pub struct RunInfo {
@@ -15,6 +17,8 @@ pub struct RunInfo {
     trackers: Vec<TrackingInfo>,
 }
 impl RunInfo {
+    /// Reads in the default run info file
+    pub fn new_default() -> Result<RunInfo, String> { Self::new(RUN_INFO_FILE) }
     /// Reads in the file to create the run info
     pub fn new(info_path: impl AsRef<Path>) -> Result<RunInfo, String> {
         utils::read_json_file(info_path)

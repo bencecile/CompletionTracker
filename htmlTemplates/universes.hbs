@@ -1,45 +1,23 @@
+<!doctype html>
 <html>
     <head>
         {{> html_head}}
     </head>
-    <body>
-        {{> header}}
+    <body class="theme-dark1">
+        {{> header active="universes"}}
 
-        <script>
-            FILTER_INFO = [{
-                id: "universe_filter",
-                searchList: [[
-                    {{#each universe}}
-                    "{{universe.name}}",
-                    {{/each}}
-                ]],
-            }]
-        </script>
-
-        <div class="container">
-            {{!-- Place an create button near the top for easy access --}}
-            <a href="/sources/universe/new">
-                <button class="btn btn-primary">{{lang.universe_create}}</button>
-            </a>
-            {{!-- Be able to filter out the universes --}}
-            <div id="universe_filter">
-                <input class="form-input filter_search" type="text" placeholder="{{lang.filter}}">
-                {{!-- Show a table of all the universes with source counts --}}
-                <table>
-                    <tr>
-                        <th>{{lang.universe}}</th>
-                        <th>{{lang.source_count}}</th>
-                    </tr>
-                    {{#each universes}}
-                    <tr>
-                        <td>{{universe.name}}</td>
-                        <td>{{universe.source_count}}</td>
-                    </tr>
-                    {{/each}}
-                </table>
-            </div>
-        </div>
+        <div id="content"></div>
 
         {{> footer}}
+
+        <script>
+            const vm = new Vue({
+                el: "#content",
+                template: `<universesContent
+                                v-bind:langStrings="{
+                                    universeCreate: '{{lang_strings.universe_create}}',
+                                }"/>`,
+            });
+        </script>
     </body>
 </html>

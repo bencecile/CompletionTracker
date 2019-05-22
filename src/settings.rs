@@ -3,7 +3,7 @@ use rouille::input;
 
 use time;
 
-use crate::lang::{Lang, LangSelect};
+use crate::lang::{Lang, UiLangString};
 
 /// These are the options that can be set for each request and changed through the settings page
 pub struct Settings {
@@ -15,7 +15,7 @@ impl Settings {
         let mut lang = None;
         for (name, value) in input::cookies(req) {
             match name {
-                "lang" => lang = LangSelect::from_short_str(value),
+                "lang" => lang = Lang::from_short_str(value),
                 // Do nothing with empty matches
                 _ => (),
             }
@@ -23,10 +23,11 @@ impl Settings {
 
         Settings {
             // Convert the lang selection that we got from the cookie
-            lang: Lang::new(lang.unwrap_or(LangSelect::EN)),
+            lang: lang.unwrap_or(Lang::EN),
         }
     }
     pub fn lang(&self) -> Lang { self.lang }
+    pub fn lang_ui(&self) -> UiLangString { UiLangString::new(self.lang) }
 
     /// Sets the cookies for the settings into the response
     pub fn set_cookies(&self, res: Response) -> Response {
@@ -38,6 +39,6 @@ impl Settings {
             now.rfc822().to_string()
         };
         res.with_additional_header("Set-Cookie",
-            format!("lang={}; Expires={}; Path=/;", self.lang.lang().short_str(), &expires))
+            format!("lang={}; Expires={}; Path=/;", self.lang.short_str(), &expires))
     }
 }

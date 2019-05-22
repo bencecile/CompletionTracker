@@ -1,105 +1,99 @@
 use serde_derive::{Serialize};
 
 use crate::source::{Arc, Series, Source, Universe};
-use crate::lang::{LangSelect};
+use crate::lang::{Lang};
 
 /// Creates a vector of universe UI for all of the universes
 pub fn create_universes_ui<'u>(universes: &'u Vec<Universe>, sources: &Vec<Source>,
-lang: LangSelect) -> Vec< UiUniverse<'u> > {
+lang: Lang) -> Vec< UniverseUi<'u> > {
     universes.iter()
-        .map(|universe| UiUniverse::new(universe, sources, lang))
+        .map(|universe| UniverseUi::new(universe, sources, lang))
         .collect()
 }
 
-/// These are the 
+/// This is the information the UI needs to be able to show universes
 #[derive(Serialize)]
-pub struct UiUniverse<'u> {
+pub struct UniverseUi<'u> {
     name: &'u str,
+    id: u64,
     source_count: usize,
-    series: Vec< UiSeries<'u> >,
+    series: Vec< SeriesUi<'u> >,
 }
-impl <'u> UiUniverse<'u> {
-    pub fn new(universe: &'u Universe, sources: &Vec<Source>, lang: LangSelect)
-    -> UiUniverse<'u> {
-        let id = universe.id();
+impl <'u> UniverseUi<'u> {
+    pub fn new(universe: &'u Universe, sources: &Vec<Source>, lang: Lang)
+    -> UniverseUi<'u> {
+        let id = universe.id;
         // Try to find this universe in the sources
         let sources_in_universe: Vec<&Source> = sources.iter().filter(|source| {
-            if let Some(u_id) = source.universe() {
-                *u_id == id
-            } else {
-                false
-            }
+            source.universe.map_or(false, |u_id| u_id == id)
         }).collect();
         // Count how many series are in this universe
         let source_count = sources_in_universe.len();
         // Get the stats for each of the series
-        let series = universe.series().iter().map(|series| {
-            UiSeries::new(series, &sources_in_universe, lang)
+        let series = universe.series.iter().map(|series| {
+            SeriesUi::new(series, &sources_in_universe, lang)
         }).collect();
 
-        UiUniverse {
+        UniverseUi {
             name: universe.name(lang),
+            id,
             source_count,
             series,
         }
     }
 }
 #[derive(Serialize)]
-struct UiSeries<'s> {
+struct SeriesUi<'s> {
     name: &'s str,
+    id: u64,
     source_count: usize,
-    arcs: Vec< UiArc<'s> >,
+    arcs: Vec< ArcUi<'s> >,
 }
-impl <'s> UiSeries<'s> {
+impl <'s> SeriesUi<'s> {
     /// Gets the stats from a series using a vector of sources that are in this universe
-    fn new(series: &'s Series, sources_in_universe: &Vec<&Source>, lang: LangSelect)
-    -> UiSeries<'s> {
-        let id = series.id();
+    fn new(series: &'s Series, sources_in_universe: &Vec<&Source>, lang: Lang)
+    -> SeriesUi<'s> {
+        let id = series.id;
         // Find the sources that belong to this series
         let sources_in_series: Vec<&Source> = sources_in_universe.iter().filter(|source| {
-            if let Some(s_id) = source.series() {
-                *s_id == id
-            } else {
-                false
-            }
+            source.series.map_or(false, |s_id| s_id == id)
         }).map(|s| *s).collect();
         // Count up how many we got
         let source_count = sources_in_series.len();
         // Create the stats for each arc
-        let arcs = series.arcs().iter().map(|arc| {
-            UiArc::new(arc, &sources_in_series, lang)
+        let arcs = series.arcs.iter().map(|arc| {
+            ArcUi::new(arc, &sources_in_series, lang)
         }).collect();
 
-        UiSeries {
+        SeriesUi {
             name: series.name(lang),
+            id,
             source_count,
             arcs,
         }
     }
 }
 #[derive(Serialize)]
-struct UiArc<'a> {
+struct ArcUi<'a> {
     name: &'a str,
+    id: u64,
     source_count: usize,
 }
-impl <'a> UiArc<'a> {
-    fn new(arc: &'a Arc, sources_in_series: &Vec<&Source>, lang: LangSelect) -> UiArc<'a> {
-        let id = arc.id();
+impl <'a> ArcUi<'a> {
+    fn new(arc: &'a Arc, sources_in_series: &Vec<&Source>, lang: Lang) -> ArcUi<'a> {
+        let id = arc.id;
         // Just get the count directly
         let source_count = sources_in_series.iter().fold(0, |count, source| {
-            if let Some(a_id) = source.arc() {
-                if *a_id == id {
-                    count + 1
-                } else {
-                    count
-                }
+            source.arc.map_or(count, |a_id| if a_id == id {
+                count + 1
             } else {
                 count
-            }
+            })
         });
 
-        UiArc {
+        ArcUi {
             name: arc.name(lang),
+            id,
             source_count,
         }
     }

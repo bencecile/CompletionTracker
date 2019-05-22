@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path};
+use std::path::{Path, PathBuf};
 
 use serde::{Serialize};
 use serde::de::{DeserializeOwned};
@@ -30,7 +30,30 @@ pub fn write_json_list<T: Serialize>(data: &Vec<T>, file: impl AsRef<Path>) -> R
     write_json_file(data, file)
 }
 
-/// Escapes the spaces from a string, giving one usable for URLs
-pub fn escape_spaces(string: &str) -> String {
-    string.replace(" ", "_")
+/// Gets all of the *files* from the directory.
+/// If recursive, it will read everything from all the sub-directories
+/// Panics if it's not a directory.
+pub fn read_dir(dir: impl AsRef<Path>, recursive: bool) -> impl Iterator<Item = PathBuf> {
+    fs::read_dir(dir).expect("Tried reading something that's not a directory")
+        .filter_map(move |dir_entry| {
+            // Get rid of everything that isn't a file (or dir if recursive)
+            let dir_entry = dir_entry.expect("Failed to read a dir entry");
+            let file_type = dir_entry.file_type().expect("Failed to read the file type");
+            if file_type.is_file() || (recursive && file_type.is_dir()) {
+                Some((dir_entry.path(), file_type))
+            } else {
+                None
+            }
+        }).flat_map(move |(file_path, file_type)| {
+            // TODO This may be able to be cleaned up
+            if file_type.is_file() {
+                // Just use this single file
+                vec![file_path]
+            } else {
+                // Read this directory now too
+                // If it's a directory, we know that we are recursive since that's the
+                //  only way we can get a directory here
+                read_dir(file_path, recursive).collect::<Vec<PathBuf>>()
+            }
+        })
 }

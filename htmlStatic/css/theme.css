@@ -1,0 +1,51 @@
+/* These are the theme colours, to keep them separate from everything else */
+.theme-primary {
+    background-color: #c44900 !important;
+    color: #fff !important;
+}
+.theme-dark1 {
+    background-color: #2b1000 !important;
+    color: #ddd !important;
+}
+.theme-dark2 {
+    background-color: #5e2300 !important;
+    color: #ddd !important;
+}
+.theme-dark3 {
+    background-color: #913600 !important;
+    color: #ddd !important;
+}
+.theme-light1 {
+    background-color: #f75c00 !important;
+    color: #222 !important;
+}
+.theme-light2 {
+    background-color: #ff7a2b !important;
+    color: #222 !important;
+}
+.theme-light3 {
+    background-color: #ff9a5e !important;
+    color: #222 !important;
+}
+
+/* Some basic page settings */
+body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+a {
+    /* Remove the text colour and underline */
+    color: inherit;
+    text-decoration: none;
+    outline: none;
+    border: none;
+}
+input {
+    border: none;
+    color: inherit;
+    background: inherit;
+    font-size: inherit;
+    font: inherit;
+    padding: 0 0.2em;
+}

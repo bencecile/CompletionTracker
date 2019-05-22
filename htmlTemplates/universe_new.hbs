@@ -1,35 +1,37 @@
+<!doctype html>
 <html>
     <head>
         {{> html_head}}
     </head>
-    <body>
-        {{> header}}
+    <body class="theme-dark1">
+        {{> header active="universes"}}
 
-        <div class="container">
-            <h2>{{lang.universe_new}}</h2>
-            <form method="POST" action="/sources/universe/new">
-                {{!-- We need a language selection picker --}}
-                <div class="form-group">
-                    <label for="lang">{{lang.lang}}</label>
-                    <select id="lang">
-                        {{#each langs}}
-                        <option value="{{this}}">{{lookup lang this}}</option>
-                        {{/each}}
-                    </select>
-                </div>
-                
-                {{!-- We will need the name of the universe --}}
-                <div class="form-group">
-                    <label for="name">{{lang.name}}</label>
-                    <input type="text" class="form-input" id="name">
-                </div>
-
-                {{!-- Be able to create a list of links --}}
-
-                <input class="form-input" type="submit" value="{{lang.create}}">
-            </form>
-        </div>
+        <div id="content"></div>
 
         {{> footer}}
+
+        <script>
+            const vm = new Vue({
+                el: "#content",
+                template: `<universeNewContent
+                                :langStrings="{
+                                    create: '{{lang_strings.create}}',
+                                    language: '{{lang_strings.language}}',
+                                    name: '{{lang_strings.name}}',
+                                    universeNew: '{{lang_strings.universe_new}}',
+                                }"
+                                :langOptions="[
+                                    ['langValue1', 'Lang1'], ['blargValue', 'Blarg'],
+                                    ['langValue2', 'Lang2'], ['blargValue', 'Blarg'],
+                                    ['langValue3', 'Lang3'], ['blargValue', 'Blarg'],
+                                    ['langValue4', 'Lang4'], ['blargValue', 'Blarg'],
+                                    ['langValue5', 'Lang5'], ['blargValue', 'Blarg'],
+                                    ['langValue6', 'Lang6'], ['blargValue', 'Blarg'],
+                                    {{#each langs}}
+                                        {{!-- [this, {{lookup lang_strings this}}], --}}
+                                    {{/each}}
+                                ]"/>`,
+            });
+        </script>
     </body>
 </html>

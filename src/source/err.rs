@@ -1,16 +1,21 @@
-use super::{SourceItem};
+use std::path::{PathBuf};
 
-/// We need the type of item with the ID of that item
-pub type SourceErrorType = (SourceItem, u64);
+use super::{SourceItemIDPair};
 
 /// Various errors can occur with source-related operations.
 /// There may be more than 1 error type for a given "error", but this will help with translations.
 pub enum SourceError {
-    /// An image failed to write to disk
-    FailedImageWrite(SourceErrorType),
-
     /// The source ID doesn't match its location
-    IDNotMatching(SourceErrorType),
+    IDNotMatching(SourceItemIDPair),
+
+    /// An image string has a bad Base64 representation
+    ImageBadBase64,
+    /// The image data can't be read as an image
+    ImageBadData,
+    /// An image is missing where it should exist
+    ImageMissing(SourceItemIDPair),
+    /// An image failed to write to disk
+    ImageWriteFailed(PathBuf),
 
     /// A series can't be added if a universe isn't added on a Source
     MissingUniverse,
@@ -18,9 +23,9 @@ pub enum SourceError {
     MissingSeries,
 
     /// The type that can't be found
-    NotFound(SourceErrorType),
-    /// The related source ID can't be found on the type
-    NotFoundSourceRelation(SourceErrorType, u64),
+    NotFound(SourceItemIDPair),
+    /// A relation of any kind can't find the ID of the same type
+    NotFoundRelation(SourceItemIDPair, u64),
 }
 
 /// The error type when trying to create a link

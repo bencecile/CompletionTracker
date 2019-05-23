@@ -20,7 +20,7 @@ export default {
 
 <style>
 .universesContent {
-    width: 100%;
+    width: auto;
     margin: 2% 10%;
     font-size: 120%;
     text-align: center;

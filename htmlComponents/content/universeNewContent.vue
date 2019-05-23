@@ -5,12 +5,8 @@
         <!-- TODO Use grid for the form layout -->
         <div class="form-group">
             <label for="lang">{{langStrings.language}}</label>
-            <formSelect :options="langOptions" id="lang" v-model="langValue"/>
-            <!-- <select id="lang"> -->
-                <!-- {{#each langs}} -->
-                <!-- <option value="{{this}}">{{lookup lang this}}</option> -->
-                <!-- {{/each}} -->
-            <!-- </select> -->
+            <formSelect :options="langOptions" id="lang" v-model="langValue"
+                :defaultSelection="thisLang"/>
         </div>
         
         <!-- We will need the name of the universe -->
@@ -40,6 +36,7 @@ export default {
             universeNew: { type: String, required: true },
         },
         langOptions: { type: Array, required: true },
+        thisLang: { type: String, required: true },
     },
 }
 </script>

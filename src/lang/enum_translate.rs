@@ -1,8 +1,8 @@
 use crate::lang::{Lang};
-use crate::source::{LinkType, MediaType};
-use crate::source::character::{CharacterRole};
-use crate::source::company::{CompanyRole};
-use crate::source::person::{Role};
+use crate::source::{
+    LinkType, MediaType,
+    Role, CharacterRole, CompanyRole,
+};
 
 /// This trait can guarantee that enums have translations similarilly
 pub trait EnumTranslate where Self: Sized {

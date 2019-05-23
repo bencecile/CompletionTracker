@@ -108,16 +108,10 @@ mod file_paths {
     #[cfg(not(debug_assertions))]
     fn vue() -> &'static str { "/js/vue-2.6.10.min.js" }
 
-    #[cfg(debug_assertions)]
-    fn bootstrap_grid() -> &'static str { "/css/bootstrap-grid-4.3.1.css" }
-    #[cfg(not(debug_assertions))]
-    fn bootstrap_grid() -> &'static str { "/css/bootstrap-grid-4.3.1.min.css" }
-
     /// Modifies the JSON value map to add the file paths
     pub fn modify_data_map(data_map: &mut Map<String, Value>) {
         // Insert the paths to our resource files
         data_map.insert("file_paths".to_string(), json!({
-            "bootstrap_grid": bootstrap_grid(),
             "vue": vue(),
         }));
     }

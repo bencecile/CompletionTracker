@@ -1,26 +1,33 @@
-pub mod character;
-pub mod company;
+mod character;
+pub use self::character::{Character, CharacterRole};
+mod company;
+pub use self::company::{Company, CompanyRole};
 pub mod err;
 use self::err::{SourceError};
-pub mod person;
+mod misc_types;
+pub use self::misc_types::{
+    Relation,
+    ReleaseDate,
+    RelatedLink, LinkType,
+};
+mod person;
+pub use self::person::{Person, Role, EmploymentStatus, EmploymentPosition};
+mod source;
+pub use self::source::{Source, MediaType};
 mod source_db;
 pub use self::source_db::{SourceDB};
-pub mod ui;
+mod source_image;
+pub use self::source_image::{ImageData, ImageType};
+mod universe;
+pub use self::universe::{Universe, Series, Arc};
 
 use std::fs;
+use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
-
-use base64;
-
-use image::{self, ImageFormat, ImageOutputFormat};
-
-use reqwest::{Url};
 
 use serde_derive::{Deserialize, Serialize};
 
 use crate::lang::{Lang, LangString, LangStrings};
-use crate::source::err::{LinkError};
-use crate::types::{Date, DateError};
 
 /// This is the folder for all of the source information
 const SOURCE_FOLDER: &'static str = "sources";
@@ -38,7 +45,6 @@ pub fn create_source_folder() -> Result<(), String> {
 pub fn source_file_path(file_name: &str) -> PathBuf {
     Path::new(SOURCE_FOLDER).join(file_name)
 }
-
 
 /// An item that is related to sources
 #[derive(Copy, Clone)]
@@ -74,372 +80,128 @@ impl SourceItem {
         match self {
             SourceItem::Source => source_file_path("imgSources"),
             SourceItem::Universe => source_file_path("imgUniverses"),
-            // The universes will have a directory that is the id of the universe
+            // The universes will have a directory that is the ID of the universe
             SourceItem::Series(u_id) => SourceItem::Universe.image_dir().join(format!("{}", u_id)),
             // Each series will have a directory with its ID
-            SourceItem::Arc(u_id, s_id) => SourceItem::Series(u_id).image_dir()
+            SourceItem::Arc(u_id, s_id) => SourceItem::Series(*u_id).image_dir()
                 .join(format!("{}", s_id)),
             SourceItem::Character => source_file_path("imgCharacters"),
             SourceItem::Person => source_file_path("imgPeople"),
             SourceItem::Company => source_file_path("imgCompanies"),
         }
     }
-
-    /// Finds the path to an image using the item's ID and image type
-    pub fn image_path(&self, id: u64, image_type: ImageType) -> PathBuf {
-        // The image will be directly underneath the directory
-        self.image_dir().join(format!("{}.{}", id, image_type.extension()))
-    }
 }
 
+/// A common pairing of a source item with its ID
+pub type SourceItemIDPair = (SourceItem, u64);
+
+/// This is a common interface that all source items should have
+pub trait RecordInfo {
+    /// Gets the source item associated with this type, with ID
+    fn source_item(&self) -> SourceItem;
+
+    // ---- Default methods ----
+
+}
+
+/// This is a record for a source-related item
 #[derive(Clone, Deserialize, Serialize)]
-pub struct Universe {
+pub struct Record<T>
+where T: RecordInfo {
+    /// Every record will need a name
     names: LangStrings,
+    /// Every record will need an identifier
     id: u64,
+    /// There may be different or alternate names
+    aliases: Vec<LangStrings>,
+    /// A description of the record is usually important
     descriptions: LangStrings,
-    /// The type of image for this universe
-    image: Option<ImageType>,
-    series: Vec<Series>,
+    /// An image for the record will help people recognize it
+    image_type: Option<ImageType>,
+    /// There's usually more information about something elsewhere
     related_links: Vec<RelatedLink>,
+    /// The type specific data
+    record_info: T,
 }
-impl Universe {
-    /// Creates a new empty Universe with a single name
-    pub fn new(name: LangString, id: u64) -> Universe {
-        Universe {
+impl <T: RecordInfo> Record<T> {
+    /// Creates a new record from a name, id, and the record info.
+    /// Anything else can get filled out after creation.
+    pub fn new(name: LangString, id: u64, record_info: T) -> Record<T> {
+        Record {
             names: LangStrings::new(name),
             id,
+            aliases: Vec::new(),
             descriptions: LangStrings::new_empty(),
-            image: None,
-            series: Vec::new(),
+            image_type: None,
             related_links: Vec::new(),
+            record_info,
         }
     }
+}
+/// Some simple getters
+impl <T: RecordInfo> Record<T> {
+    /// Gets a single name for a language
     pub fn name(&self, lang: Lang) -> &str { self.names.get_str(lang) }
-    pub fn id_eq(&self, id: u64) -> bool { self.id == id }
-
-    /// Adds an image using the image data
-    pub fn add_image(&mut self, image_data: ImageData) -> Result<(), SourceError> {
-        // Try to save the image before we add the image
-        let image_type = image_data.save(SourceItem::Universe, self.id)?;
-        let self.image = Some(image_type);
-        Ok(())
+    /// Gets a single description for a language
+    pub fn description(&self, lang: Lang) -> &str { self.descriptions.get_str(lang) }
+    /// Gets the list of aliases in a single language
+    pub fn aliases(&self, lang: Lang) -> Vec<&str> {
+        self.aliases.iter()
+            .map(|alias| alias.get_str(lang))
+            .collect()
     }
-
-    /// Replaces all of the links
-    pub fn replace_links(&mut self, links: Vec<RelatedLink>) {
-        self.related_links = links;
+    /// Gets the pair of source item and ID for this record
+    pub fn source_item_pair(&self) -> SourceItemIDPair { (self.record_info.source_item(), self.id) }
+}
+/// Some methods that add data to the record
+impl <T: RecordInfo> Record<T> {
+    /// Adds a name for the language
+    // pub fn add_name(&mut self, name: LangString) { self.names.replace(name) }
+    // /// Adds a description for the language
+    // pub fn add_description(&mut self, description: LangString) {
+    //     self.descriptions.replace(description)
+    // }
+    // /// Adds a completely new alias for a single language
+    // pub fn add_new_alias(&mut self, alias: LangString) {
+    //     self.aliases.push(LangStrings::new(alias));
+    // }
+    // /// Adds an alias to one that already exists
+    // pub fn add_alias(&mut self, index: usize, alias: LangString) {
+    //     self.aliases[index].replace(alias);
+    // }
+    /// Replace all of the links with new ones
+    pub fn replace_links(&mut self, links: impl IntoIterator<Item=RelatedLink>) {
+        // Try to preserve the allocated memory
+        self.related_links.clear();
+        self.related_links.extend(links);
     }
 }
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct Series {
-    names: LangStrings,
-    id: u64,
-    descriptions: LangStrings,
-    /// The type of image for this series
-    image: Option<ImageType>,
-    arcs: Vec<Arc>,
-    related_series: Vec<Relation>,
-    related_links: Vec<RelatedLink>,
-}
-impl Series {
-    /// Creates a new empty series with the name
-    pub fn new(name: LangString, id: u64) -> Series {
-        Series {
-            names: LangStrings::new(name),
-            id,
-            descriptions: LangStrings::new_empty(),
-            image: None,
-            arcs: Vec::new(),
-            related_series: Vec::new(),
-            related_links: Vec::new(),
+/// Any validation methods
+impl <T: RecordInfo> Record<T> {
+    /// Validate the record, as well as a function to verify the record info.
+    /// An expected ID is used for validation.
+    pub fn validate<F>(&self, expected_id: u64, fun: F) -> Result<(), SourceError>
+    where F: FnOnce(&T) -> Result<(), SourceError> {
+        // Check the expected ID
+        if self.id != expected_id {
+            return Err(SourceError::IDNotMatching(self.source_item_pair()));
         }
-    }
-    pub fn name(&self, lang: Lang) -> &str { self.names.get_str(lang) }
-    pub fn id_eq(&self, id: u64) -> bool { self.id == id }
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct Arc {
-    names: LangStrings,
-    id: u64,
-    descriptions: LangStrings,
-    /// The type of image for this arc
-    image: Option<ImageType>,
-    related_arcs: Vec<Relation>,
-    related_links: Vec<RelatedLink>,
-}
-impl Arc {
-    pub fn new(name: LangString, id: u64) -> Arc {
-        Arc {
-            names: LangStrings::new(name),
-            id,
-            descriptions: LangStrings::new_empty(),
-            image: None,
-            related_arcs: Vec::new(),
-            related_links: Vec::new(),
+        // Check for the existence of an image if there should be one
+        if let Some(image_result) = self.does_image_exist() {
+            // Return an error if there was one
+            image_result?;
         }
-    }
-    pub fn name(&self, lang: Lang) -> &str { self.names.get_str(lang) }
-    pub fn id_eq(&self, id: u64) -> bool { self.id == id }
-}
 
-/// This is the definition of a source
-#[derive(Clone, Deserialize, Serialize)]
-pub struct Source {
-    /// The name of the source
-    names: LangStrings,
-    /// An identifier for this source
-    id: u64,
-    /// The type of media that holds the source (the name)
-    media_type: MediaType,
-    /// The universe in which the source takes place (the name)
-    universe: Option<u64>,
-    /// The series in which the source takes place (the name)
-    series: Option<u64>,
-    /// The arc in which the source takes place (the name)
-    arc: Option<u64>,
-    /// A description of the source
-    descriptions: LangStrings,
-    /// The type of image for this source
-    image: Option<ImageType>,
-    /// Release dates for this source in YYYY-MM-DD. Also includes notes about the release
-    release_dates: Vec<ReleaseDate>,
-    /// Other sources that are related to this one
-    related_sources: Vec<Relation>,
-    /// Related links to websites on this source
-    related_links: Vec<RelatedLink>,
-    /// These are people who have contributed to this source
-    people: Vec<u64>,
-    /// These are fictional characters who appear in this source
-    characters: Vec<u64>,
-    /// These are any companies that are involved in the creation of this source
-    companies: Vec<u64>,
-}
-impl Source {
-    /// Creates a new empty source
-    pub fn new(name: LangString, media_type: MediaType, id: u64) -> Source {
-        Source {
-            names: LangStrings::new(name),
-            id,
-            media_type,
-            universe: None,
-            series: None,
-            arc: None,
-            descriptions: LangStrings::new_empty(),
-            image: None,
-            release_dates: Vec::new(),
-            related_sources: Vec::new(),
-            related_links: Vec::new(),
-            people: Vec::new(),
-            characters: Vec::new(),
-            companies: Vec::new(),
-        }
-    }
-    pub fn name(&self, lang: Lang) -> &str { self.names.get_str(lang) }
-    pub fn id_eq(&self, id: u64) -> bool { self.id == id }
-
-    /// Links this source before the other
-    pub fn relate_before(&mut self, other: &mut Source) {
-        let (after, before) = Relation::relate_source(&self, &other);
-        self.related_sources.push(after);
-        other.related_sources.push(before);
-    }
-    /// Changes the ID of a related source
-    pub fn modify_related_source_id(&mut self, index: usize, id: u64) {
-        self.related_sources[index] = self.related_sources[index].change_related_id(id);
+        // Use the function as the final validation
+        fun(&self.record_info)
     }
 }
-
-/// These specify the relationship between things (using IDs)
-#[derive(Copy, Clone, Deserialize, Serialize)]
-pub enum Relation {
-    /// Some other thing that happens before
-    Before(u64),
-    /// Some other thing that happens after
-    After(u64),
-    /// An alternate version of the same-ish content
-    Alternate(u64),
+/// Be able to simply access the record info inside
+impl <T: RecordInfo> Deref for Record<T> {
+    type Target = T;
+    fn deref(&self) -> &T { &self.record_info }
 }
-impl Relation {
-    /// Gives a pair of relations with the first source happening before the second
-    pub fn relate_source(before_source: &Source, after_source: &Source) -> (Relation, Relation) {
-        let before = Relation::Before(before_source.id);
-        let after = Relation::After(after_source.id);
-        (after, before)
-    }
-
-    /// Returns the ID in this relations
-    pub fn related_id(&self) -> u64 {
-        match self {
-            Relation::Before(id) |
-            Relation::After(id) |
-            Relation::Alternate(id) => *id,
-        }
-    }
-
-    /// Changes the internal related ID by returning a new Relation of the same kind
-    pub fn change_related_id(&self, id: u64) -> Relation {
-        match self {
-            Relation::Before(_) => Relation::Before(id),
-            Relation::After(_) => Relation::After(id),
-            Relation::Alternate(_) => Relation::Alternate(id),
-        }
-    }
-}
-
-#[derive(Copy, Clone, Deserialize, Serialize)]
-// It makes sense to me to deliminate categories with an underscore
-#[allow(non_camel_case_types)]
-pub enum MediaType {
-    Book_WebNovel,
-}
-
-/// A release date with a description
-#[derive(Clone, Deserialize, Serialize)]
-pub struct ReleaseDate {
-    date: Date,
-    descriptions: LangStrings,
-}
-impl ReleaseDate {
-    /// Creates a new release date
-    pub fn new(date: &str) -> Result<ReleaseDate, DateError> {
-        let date = Date::parse_date(date)?;
-        Ok(ReleaseDate {
-            date,
-            descriptions: LangStrings::new_empty(),
-        })
-    }
-
-    /// Gets the language representation of this date (date, description)
-    pub fn lang_str(&self, lang: Lang) -> (String, &str) {
-        let description = self.descriptions.get_str(lang);
-        (self.date.lang_str(lang), description)
-    }
-}
-
-/// A URL that will have related information
-#[derive(Clone, Deserialize, Serialize)]
-pub struct RelatedLink {
-    /// The URL of the link
-    url: String,
-    /// The type of the link (ie. which website are we linking to)
-    link_type: LinkType,
-    /// A description of the link
-    description: LangStrings,
-}
-impl RelatedLink {
-    /// Tries to create a related link from the url and description.
-    /// Fails if the url isn't well-formed.
-    pub fn new(url: &str) -> Result<RelatedLink, LinkError> {
-        // See if the URL checks out syntactically
-        if let Err(_) = Url::parse(url) {
-            return Err(LinkError::MalformedUrl(url.to_string()));
-        }
-        // Tries to find the LinkType from the URL
-        let link_type = if let Some(link_type) = LinkType::from_url(url) {
-            link_type
-        } else {
-            return Err(LinkError::UnknownLink(url.to_string()));
-        };
-
-        Ok(RelatedLink {
-            url: url.to_string(),
-            link_type,
-            description: LangStrings::new_empty(),
-        })
-    }
-
-    /// Adds a description from the language string
-    pub fn add_description(&mut self, lang_string: LangString) {
-        self.description.replace(lang_string);
-    }
-}
-/// The type of resource that is being linked.
-/// This can be useful for providing link text and icons (like the 'W' for Wikipedia).
-#[derive(Copy, Clone, Deserialize, Serialize)]
-pub enum LinkType {
-    /// This is for https://syosetu.com/ and the novels that it contains
-    ShousetsukaNarou,
-    /// Any part of wikipedia.org
-    Wikipedia,
-}
-impl LinkType {
-    /// Tries to parse the link type from the URL
-    pub fn from_url(url: &str) -> Option<LinkType> {
-        // Go through each variant to see if this URL belongs to a known site
-        if url.contains("syosetu.com") {
-            Some(LinkType::ShousetsukaNarou)
-        } else if url.contains("wikipedia.org") {
-            Some(LinkType::Wikipedia)
-        } else {
-            None
-        }
-    }
-}
-
-/// The type (codec) of an image
-#[derive(Copy, Clone, Deserialize, Serialize)]
-pub enum ImageType {
-    Jpeg,
-    Png,
-}
-impl ImageType {
-    /// Gets the extension for the image type (excluding the prefix period '.')
-    pub fn extension(&self) -> &'static str {
-        match self {
-            ImageType::Jpeg => "jpg",
-            ImageType::Png => "png",
-        }
-    }
-}
-
-/// A simple struct to hold the data for an image
-pub struct ImageData {
-    data: Vec<u8>,
-    image_type: ImageType,
-}
-impl ImageData {
-    /// Creates new image data
-    pub fn new(data: Vec<u8>, image_type: ImageType) -> ImageData {
-        ImageData { data, image_type }
-    }
-    /// Reads a Base64 string as an image. Uses the compressed data if it's a JPEG or PNG.
-    /// Any other image type will be converted to PNG.
-    fn read_base64_image(image_str: &str) -> Result<ImageData, SourceError> {
-        let raw_data = base64::decode(image_str)
-            .map_err(|_| Err(DataError::BadImageBase64))?;
-        // Try to guess the format first
-        let guessed_format = image::guess_format(&raw_data)
-            .map_err(|_| Err(DataError::BadImageData))?;
-        // If it's not PNG or JPG, read in the image and save it to a buffer
-        match guessed_format {
-            ImageFormat::JPEG => Ok( ImageData::new(raw_data, ImageType::Jpeg) ),
-            ImageFormat::PNG => Ok( ImageData::new(raw_data, ImageType::Png) ),
-            _ => {
-                // Read in the image data
-                let image = image::load_from_memory(&raw_data)
-                    .map_err(|_| Err(DataError::BadImageData))?;
-                // Save the image to a PNG buffer
-                let mut png_buffer = Vec::new();
-                image.write_to(&mut png_buffer, ImageOutputFormat::PNG)
-                    // Although this error shouldn't happen since it's just to memory
-                    .map_err(|_| Err(DataError::BadImageData))?;
-
-                ImageData::new(png_buffer, ImageType::Png)
-            },
-        }
-    }
-
-    /// Saves the image to disk using a source item and its ID.
-    /// Returns the image type.
-    pub fn save(self, source_item: SourceItem, id: u64) -> Result<ImageType, SourceError> {
-        // Get the path for the image
-        let image_path = source_item.image_path(id, self.image_type);
-        // Try to write the bytes to disk
-        fs::write(image_path, self.data)
-            .map_err(|_| Err(SourceError::FailedImageWrite( (source_item, id) )))?;
-        // Return the image type
-        Ok(self.image_type)
-    }
+/// Be able to change the record info with ease
+impl <T: RecordInfo> DerefMut for Record<T> {
+    fn deref_mut(&mut self) -> &mut T { &mut self.record_info }
 }

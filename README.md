@@ -1,13 +1,13 @@
-# Complete Tracker
-This goal of this application is to let you track your completion of pretty much anything. It could be TV Shows, books, movies, anime or games.
+# Completion Tracker
+This goal of this application is to let you track your completion of pretty much anything. It could be TV Shows, books, movies, anime or games. This project is an application that employs a web interface, so you should spin up your own and use it however you like. It would be nice however, if you made an issue for a maintainer to create a source so that a font of information can be found here, for everyone.
 
 Monopolizing this information is a complete non-goal, as it should be open and usable (like Wikipedia).
-
-This project is an application that uses a web interface, so you should spin up your own and use it however you like.
 
 Although this helps with a single person's completion tracking, it also handles series' information compilation. If there is a cinematic universe or book series that is gigantic, I want this application to be a reliable font of information to see how everything's connected.
 
 Multiple people can use the completion tracking at the same time. It would be recommended to do this only with other people you know well, as there is no login system.
+
+A cool idea would be to set up this server somewhere, with no tracking enabled, as a regular web server just so that the information on the series' can be easily accessed.
 
 ## Running the Program
 To run the program, you will need to have Rust installed.

@@ -59,6 +59,7 @@ impl Api {
         // Show the page for creating a new universe
         let data = json!({
             "langs": Lang::all_short_str(),
+            "thisLang": settings.lang().short_str(),
         });
         Response::html(rouille::try_or_400!(
             self.html_generator.generate(&settings, "universe_new", data)

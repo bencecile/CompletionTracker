@@ -1,6 +1,6 @@
 <template>
     <div class="dropdown-menu theme-dark3"
-        v-on="{ mousedown: fold, mouseenter: open, mouseleave: close }">
+        v-on="{ mouseenter: open, mouseleave: close }">
         <div class="dropdown-bar">
             <a v-bind:href="href">{{title}}</a>
             <svg class="dropdown-arrow"
@@ -12,7 +12,7 @@
         </div>
         <div class="dropdown-folder theme-dark3"
             @mouseenter.capture="highlight" @mouseleave.capture="unhighlight"
-            v-bind:class="{ 'd-none': !isOpen }">
+            :class="{ closed: !isOpen }">
             <slot></slot>
         </div>
     </div>
@@ -64,22 +64,22 @@ export default {
     stroke: currentColor;
     stroke-width: 0.5em;
     fill: none;
+    transition: all 300ms ease;
 }
-.dropdown-arrow.open {
-    transform: rotate(-90deg);
-}
+.dropdown-arrow.open { transform: rotate(-90deg); }
 .dropdown-folder {
     position: absolute;
-    display: block;
     z-index: 1;
     text-align: center;
     font-size: 80%;
     box-shadow: 0 0.25em 0.5em 0 rgba(0,0,0,0.2);
     min-width: 100%;
+    overflow-y: hidden;
+    transition: all 300ms ease;
 }
+.dropdown-folder.closed { transform: scaleY(0); }
 .dropdown-folder > * {
     display: block;
-    height: 1.5em;
     line-height: 1.5em;
     width: 100%;
 }

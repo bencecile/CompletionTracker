@@ -13,19 +13,7 @@
         <script>
             const vm = new Vue({
                 el: "#content",
-                template: `<universeNewContent
-:langStrings="{
-    create: '{{lang_strings.create}}',
-    language: '{{lang_strings.language}}',
-    name: '{{lang_strings.name}}',
-    universeNew: '{{lang_strings.universe_new}}',
-}"
-:langOptions="[
-    {{#each langs as |lang|}}
-        ['{{lang}}', '{{lookup ../lang_strings lang}}'],
-    {{/each}}
-]"
-thisLang="{{thisLang}}"/>`,
+                template: `<universeNewContent />`,
             });
         </script>
     </body>

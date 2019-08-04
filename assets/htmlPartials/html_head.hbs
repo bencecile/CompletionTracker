@@ -1,14 +1,39 @@
-<title>{{lang_strings.app_title}}</title>
+<title>{{ui_strings.app_title.en}}</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<!-- We will need Vue -->
+{{!-- We will need Vue --}}
 <script src="{{file_paths.vue}}"></script>
 
-<!-- Include our custom CSS -->
+{{!-- Include our custom CSS --}}
 <link rel="stylesheet" href="/css/theme.css"/>
 <link rel="stylesheet" href="/css/utilities.css"/>
-<!-- Include our custom JS -->
+
+{{!-- Add any Vue options before they get called --}}
+<script>
+    // Set a global map to keep things on for things that we can access anywhere
+    const Global = {}
+    
+    // Set the LangStrings for all of the Vue components
+    Global.uiStrings = {
+    {{#each ui_strings as |uiStrings key|}}
+        {{camelCase key}}: {
+            {{#each uiStrings as |string lang|}}
+                {{lang}}: "{{string}}",
+            {{/each}}
+        },
+    {{/each}}
+    }
+    Global.langs = [
+    {{#each langs as |lang|}}
+        "{{lang}}",
+    {{/each}}
+    ]
+</script>
+
+{{!-- Our settings --}}
+<script src="/js/settings.js"></script>
+{{!-- Include our custom JS --}}
 <script src="/js/custom.js"></script>
-<!-- Inclufe all of our custom Vue components -->
-<script src="/js/components"></script>
+{{!-- Include all of our custom Vue components --}}
+<script src="/js/components.js"></script>

@@ -2,28 +2,49 @@
     height: 1.5em;
     line-height: 1.5em;
     padding: 0 0.5em;
-    border: none;
     border-radius: 0.5em;
+
+    border: none;
     outline: none;
     cursor: pointer;
     text-align: center;
     text-decoration: none;
     font: inherit;
 }
-.btn.fake {
-    /* This is a "fake" button so it doesn't look like a button */
-    color: inherit;
-    background: inherit;
-    border-radius: 0;
-}
+.btn::-moz-focus-inner { border: none; }
 
-.form-group {
-    display: flex;
+.text-line {
     height: 1.5em;
     line-height: 1.5em;
-    justify-content: left;
-    margin-bottom: 0.5em;
 }
-.form-group > label {
-    margin-right: 2em;
+
+/* ---- The rules for the form classes ---- */
+.form-grid {
+    display: grid;
+    margin: 1.5% 3%;
+}
+@media(max-width: 767.98px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-grid > div {
+        margin-bottom: 0.5em;
+    }
+}
+@media(min-width: 767.99px) {
+    .form-grid {
+        column-gap: 0.5em;
+        row-gap: 0.5em;
+        grid-template-columns: 2fr 3fr;
+        column-gap: 2em;
+    }
+    .form-grid > label {
+        justify-self: end;
+    }
+    .form-grid > div {
+        justify-self: start;
+    }
+    .form-grid > .formMultiCreate.full {
+        grid-column: 1 / -1;
+    }
 }

@@ -1,18 +1,17 @@
 <template>
-    <div class="dropdown-menu theme-dark3"
-        v-on="{ mouseenter: open, mouseleave: close }">
-        <div class="dropdown-bar">
-            <a v-bind:href="href">{{title}}</a>
-            <svg class="dropdown-arrow"
-                v-bind:class="{ open: isOpen }"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 100 100">
-                <path d="M 30,40  l 20,20  l 20,-20" />
+    <div class="dropdownMenu theme-primary"
+        @focusin="focus(true)" @focusout="focus(false)"
+        @mouseenter="fold(true)" @mouseleave="fold(false)"
+        @mouseup="clickFold">
+        <focusableA class="dropdownMenu-link" :href="href">{{title}}</focusableA>
+        <div class="dropdownMenu-arrowBox"
+            :class="{ open: isFolderOpen }">
+            <svg class="dropdownMenu-arrow text" viewBox="0 0 100 100">
+                <polyline points="30,40 50,60 70,40" fill="none"/>
             </svg>
         </div>
-        <div class="dropdown-folder theme-dark3"
-            @mouseenter.capture="highlight" @mouseleave.capture="unhighlight"
-            :class="{ closed: !isOpen }">
+        <div class="dropdownMenu-folder theme-primary"
+            :class="{ closed: !isFolderOpen }">
             <slot></slot>
         </div>
     </div>
@@ -20,55 +19,77 @@
 
 <script>
 export default {
-    data() {
-        return {
-            isOpen: false,
-        }
-    },
-    methods: {
-        fold() { this.isOpen = !this.isOpen; },
-        open() { this.isOpen = true; },
-        close() { this.isOpen = false; },
-
-        highlight(event) {
-            if (!event.target.classList.contains("dropdown-folder")) {
-                event.target.classList.add("theme-primary");
-            }
-        },
-        unhighlight(event) {
-            if (!event.target.classList.contains("dropdown-folder")) {
-                event.target.classList.remove("theme-primary");
-            }
-        },
-    },
     props: {
         title: { type: String, required: true },
         href: { type: String, required: true },
+    },
+    data() {
+        return {
+            // If the element is in focus
+            inFocus: false,
+            isOpen: false,
+            // Have a lock for how often the folder can be folded
+            clickLock: false,
+            clickTimer: new TimeoutTracker(function(dropdownMenu) {
+                dropdownMenu.clickLock = false;
+            }),
+        }
+    },
+    computed: {
+        // Checks if the folder should be open
+        isFolderOpen() { return this.isOpen || this.inFocus; },
+    },
+    methods: {
+        // Allow clicking to close it
+        clickFold() {
+            // Don't fold if locked
+            if (this.clickLock) { return; }
+            this.setClickLock();
+
+            this.fold(!this.isOpen);
+        },
+        // Sets the click lock
+        setClickLock() {
+            this.clickLock = true;
+            this.clickTimer.setTimeout(300, this);
+        },
+        fold(newOpen) {
+            // Lock the button from closing so soon after opening
+            this.setClickLock();
+            this.isOpen = newOpen;
+        },
+        // Highlight the element that is being focused
+        focus(newFocus) { this.inFocus = newFocus; },
     },
 }
 </script>
 
 <style>
-.dropdown-menu {
+.dropdownMenu {
     position: relative;
-    display: inline-block;
-}
-.dropdown-bar {
+    display: flex;
     cursor: pointer;
-    margin-left: 0.5em;
 }
-.dropdown-arrow {
-    width: auto;
-    margin: 0 0.25em;
-    height: 1em;
-    stroke: currentColor;
+.dropdownMenu-link {
+    height: 2em;
+    padding: 0 0.25em;
+    text-align: center;
+}
+.dropdownMenu-arrowBox {
+    height: 100%;
+    width: 1em;
+    margin-right: 0.25em;
+}
+.dropdownMenu-arrow {
+    width: 1em;
     stroke-width: 0.5em;
-    fill: none;
     transition: all 300ms ease;
 }
-.dropdown-arrow.open { transform: rotate(-90deg); }
-.dropdown-folder {
+.dropdownMenu-arrowBox.open > .dropdownMenu-arrow { transform: rotate(-90deg); }
+
+.dropdownMenu-folder {
     position: absolute;
+    top: 100%;
     z-index: 1;
     text-align: center;
     font-size: 80%;
@@ -77,10 +98,10 @@ export default {
     overflow-y: hidden;
     transition: all 300ms ease;
 }
-.dropdown-folder.closed { transform: scaleY(0); }
-.dropdown-folder > * {
+.dropdownMenu-folder.closed { transform: scaleY(0); }
+.dropdownMenu-folder > * {
     display: block;
     line-height: 1.5em;
-    width: 100%;
+    min-width: 100%;
 }
 </style>

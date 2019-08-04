@@ -1,20 +1,13 @@
 <template>
     <div class="universesContent">
-        <!-- Be able to create more universes from this screen -->
-        <a href="/sources/universe/new">
-            <button class="btn theme-primary">{{langStrings.universeCreate}}</button>
-        </a>
-        <!-- Show all of the universe that are currently here with a filter -->
+        <!-- Be able to go to the page to create more universes -->
+        <focusableA href="/universe/new">{{Global.uiStrings.universeTagCreate.current()}}</focusableA>
+        <!-- Show all of the universes that are currently here with a filter -->
     </div>
 </template>
 
 <script>
 export default {
-    props: {
-        langStrings: {
-            universeCreate: { type: String, required: true },
-        },
-    },
 }
 </script>
 

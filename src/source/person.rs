@@ -1,6 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 
-use crate::source::{RecordInfo, SourceItem};
+use super::{Country, RecordInfo, SourceItem, SourceLang};
 use crate::types::{Date};
 
 /// This is a person. They can contribute to the creation of Sources.
@@ -8,9 +8,29 @@ use crate::types::{Date};
 pub struct Person {
     /// The companies where this person has been employed
     employment: Vec<EmploymentStatus>,
+    /// The country where this record was founded (originated)
+    country_of_origin: Option<Country>,
+    person_relation: Option<PersonRelation>,
+}
+impl Person {
+    pub fn new() -> Person {
+        Person {
+            employment: Vec::new(),
+            country_of_origin: None,
+            person_relation: None,
+        }
+    }
 }
 impl RecordInfo for Person {
-    fn source_item(&self) -> SourceItem { SourceItem::Person }
+    fn source_item() -> SourceItem { SourceItem::Person }
+}
+
+/// The various blood relations between people.
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub enum PersonRelation {
+    Parent(u64),
+    Child(u64),
+    Sibling(u64),
 }
 
 /// The employment status of a person.
@@ -31,8 +51,8 @@ pub struct EmploymentStatus {
 pub enum Role {
     /// The writer (ex. for a novel)
     Writer,
-    /// A voice actor for a Character (using its ID for reference)
-    VoiceActor(u64),
+    /// A voice actor for a Character (using its ID for reference) and language spoken
+    VoiceActor(u64, SourceLang),
 }
 
 /// A specific position that can be held within a company

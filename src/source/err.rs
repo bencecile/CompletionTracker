@@ -26,6 +26,9 @@ pub enum SourceError {
     NotFound(SourceItemIDPair),
     /// A relation of any kind can't find the ID of the same type
     NotFoundRelation(SourceItemIDPair, u64),
+
+    /// A save operation failed
+    FailedSave,
 }
 
 /// The error type when trying to create a link

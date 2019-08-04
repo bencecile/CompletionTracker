@@ -1,59 +1,48 @@
+//! All of the image related things that we can do in the API
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use base64;
 use image::{self, ImageFormat, ImageOutputFormat};
 
-use serde_derive::{Deserialize, Serialize};
+use super::{source_file_path};
+use crate::source::{ImageType, SourceItem, Record, RecordInfo};
+use crate::source::err::{SourceError};
 
-use crate::source::{Record, RecordInfo, SourceError};
-
-/// All of the image related methods for the Record
-impl <T: RecordInfo> Record<T> {
-    /// Finds the path to the image for this record
-    pub fn image_path(&self, image_type: ImageType) -> PathBuf {
-        // The image will be directly underneath the directory
-        let source_item = self.record_info.source_item();
-        source_item.image_dir().join(format!("{}.{}", self.id, image_type.extension()))
+/// Gets the image directory for the item
+pub fn image_dir(source_item: SourceItem) -> PathBuf {
+    match source_item {
+        SourceItem::Character => source_file_path("imgCharacters"),
+        SourceItem::Company => source_file_path("imgCompanies"),
+        SourceItem::Person => source_file_path("imgPeople"),
+        SourceItem::Source => source_file_path("imgSources"),
+        SourceItem::UniverseTag => source_file_path("imgUniverseTags"),
     }
-    /// Checks if the image for this record exists
-    pub fn does_image_exist(&self) -> Option< Result<(), SourceError> > {
-        if let Some(image_type) = self.image_type {
-            let image_path = self.image_path(image_type);
+}
+
+/// Finds the image path for the given image type
+fn find_image_path<T: RecordInfo + Clone>(record: &Record<T>, image_type: ImageType) -> PathBuf {
+    // The image will be directly underneath the directory
+    let (source_item, id) = record.source_item_pair();
+    image_dir(source_item)
+        .join(format!("{}.{}", id, image_type.extension()))
+}
+/// Finds the path to the image for this record
+pub fn image_path<T: RecordInfo + Clone>(record: &Record<T>)
+-> Option< Result<PathBuf, SourceError> > {
+    record.image_type
+        .map(|image_type| find_image_path(record, image_type))
+        // Check the path itself for existence
+        .map(|image_path|
             if image_path.is_file() {
-                Some(Ok(()))
+                Ok(image_path)
             } else {
-                Some(Err(SourceError::ImageMissing(self.source_item_pair())))
+                Err(SourceError::ImageMissing(record.source_item_pair()))
             }
-        } else {
-            None
-        }
-    }
-    /// Adds an image to the record
-    pub fn add_image(&mut self, image_data: ImageData) -> Result<(), SourceError> {
-        // Get the image type before we save the image to disk
-        let image_type = image_data.image_type;
-        image_data.save(self.image_path(image_type))?;
-        self.image_type = Some(image_type);
-        Ok(())
-    }
+        )
 }
 
-/// The type (codec) of an image
-#[derive(Copy, Clone, Deserialize, Serialize)]
-pub enum ImageType {
-    Jpeg,
-    Png,
-}
-impl ImageType {
-    /// Gets the extension for the image type (excluding the prefix period '.')
-    pub fn extension(&self) -> &'static str {
-        match self {
-            ImageType::Jpeg => "jpg",
-            ImageType::Png => "png",
-        }
-    }
-}
 
 /// A simple struct to hold the data for an image
 pub struct ImageData {
@@ -61,6 +50,8 @@ pub struct ImageData {
     image_type: ImageType,
 }
 impl ImageData {
+    pub fn image_type(&self) -> ImageType { self.image_type }
+
     /// Creates new image data
     pub fn new(data: Vec<u8>, image_type: ImageType) -> ImageData {
         ImageData { data, image_type }
@@ -90,6 +81,17 @@ impl ImageData {
                 Ok(ImageData::new(png_buffer, ImageType::Png))
             },
         }
+    }
+
+    /// Saves the image while modifying the record to reflect this
+    pub fn save_and_record<T: RecordInfo + Clone>(self, record: &mut Record<T>)
+    -> Result<(), SourceError> {
+        // Take the image type out before we consume self by saving
+        let image_type = self.image_type;
+        self.save(find_image_path(&record, image_type))?;
+        // We can now safely update the record since the save succeeded
+        record.image_type = Some(image_type);
+        Ok(())
     }
 
     /// Saves the image to disk using a source item and its ID.

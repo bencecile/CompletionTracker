@@ -3,8 +3,8 @@ use std::path::{Path};
 
 use serde_derive::{Deserialize};
 
-use crate::tracking::{Tracker};
 use crate::utils;
+use crate::tracking::{Tracker};
 
 const RUN_INFO_FILE: &'static str = "runInfo.json";
 

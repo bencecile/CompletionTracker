@@ -2,9 +2,14 @@ use reqwest::{Url};
 
 use serde_derive::{Deserialize, Serialize};
 
-use crate::lang::{Lang, LangString, LangStrings};
-use crate::source::err::{LinkError};
+use super::{SourceLangStrings};
+use super::err::{LinkError};
 use crate::types::{Date, DateError};
+
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub enum Country {
+    Japan,
+}
 
 /// These specify the relationship between things (using IDs)
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Deserialize, Serialize)]
@@ -47,7 +52,7 @@ impl Relation {
 #[derive(Clone, Deserialize, Serialize)]
 pub struct ReleaseDate {
     date: Date,
-    descriptions: LangStrings,
+    pub descriptions: SourceLangStrings,
 }
 impl ReleaseDate {
     /// Creates a new release date
@@ -55,14 +60,8 @@ impl ReleaseDate {
         let date = Date::parse_date(date)?;
         Ok(ReleaseDate {
             date,
-            descriptions: LangStrings::new_empty(),
+            descriptions: SourceLangStrings::new_empty(),
         })
-    }
-
-    /// Gets the language representation of this date (date, description)
-    pub fn lang_str(&self, lang: Lang) -> (String, &str) {
-        let description = self.descriptions.get_str(lang);
-        (self.date.lang_str(lang), description)
     }
 }
 
@@ -74,7 +73,7 @@ pub struct RelatedLink {
     /// The type of the link (ie. which website are we linking to)
     link_type: LinkType,
     /// A description of the link
-    description: LangStrings,
+    pub description: SourceLangStrings,
 }
 impl RelatedLink {
     /// Tries to create a related link from the url and description.
@@ -94,15 +93,13 @@ impl RelatedLink {
         Ok(RelatedLink {
             url: url.to_string(),
             link_type,
-            description: LangStrings::new_empty(),
+            description: SourceLangStrings::new_empty(),
         })
     }
-
-    /// Adds a description from the language string
-    pub fn add_description(&mut self, lang_string: LangString) {
-        self.description.replace(lang_string);
-    }
+    pub fn url(&self) -> &str { &self.url }
 }
+
+
 /// The type of resource that is being linked.
 /// This can be useful for providing link text and icons (like the 'W' for Wikipedia).
 #[derive(Copy, Clone, Deserialize, Serialize)]
@@ -113,15 +110,36 @@ pub enum LinkType {
     Wikipedia,
 }
 impl LinkType {
+    /// Pairs with a URL and the matching link type
+    fn url_pairs() -> &'static [(&'static str, LinkType)] {
+        &[
+            ("syosetu.com", LinkType::ShousetsukaNarou),
+            ("wikipedia.org", LinkType::Wikipedia),
+        ]
+    }
     /// Tries to parse the link type from the URL
     pub fn from_url(url: &str) -> Option<LinkType> {
         // Go through each variant to see if this URL belongs to a known site
-        if url.contains("syosetu.com") {
-            Some(LinkType::ShousetsukaNarou)
-        } else if url.contains("wikipedia.org") {
-            Some(LinkType::Wikipedia)
-        } else {
-            None
+        for (url_part, link_type) in LinkType::url_pairs().iter() {
+            if url.contains(url_part) { return Some(*link_type); }
+        }
+        None
+    }
+}
+
+
+/// The type (codec) of an image
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub enum ImageType {
+    Jpeg,
+    Png,
+}
+impl ImageType {
+    /// Gets the extension for the image type (excluding the prefix period '.')
+    pub fn extension(&self) -> &'static str {
+        match self {
+            ImageType::Jpeg => "jpg",
+            ImageType::Png => "png",
         }
     }
 }

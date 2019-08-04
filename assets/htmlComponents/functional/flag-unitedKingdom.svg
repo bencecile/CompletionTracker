@@ -1,0 +1,28 @@
+<svg viewBox="0 0 60 60">
+    <!-- Colour scheme: The red is #CC0000, the blue is #000066 -->
+    <rect x="0" y="15" width="60" height="30" fill="#FFF" />
+
+    <!-- The horizontal then vertical stripe of St George's cross -->
+    <rect x="0" y="27" width="60" height="6" fill="#C00" />
+    <rect x="27" y="15" width="6" height="30" fill="#C00" />
+    
+    <!-- The cross of St. Andrew, starting top-left -->
+    <polygon points="0,15 20,25 15.5278,25 0,17.2360" fill="#C00" />
+    <polygon points="0,45 20,35 24.4721,35 4.4721,45" fill="#C00" />
+    <polygon points="60,45 40,35 44.4721,35 60,42.7639" fill="#C00" />
+    <polygon points="60,15 40,25 35.5278,25 55.5278,15" fill="#C00" />
+
+    <!-- The blue cross of St. Patrick, starting top-left below the diagonal -->
+    <polygon points="0,18.3541 13.2917,25 0,25" fill="#006" />
+    
+    <polygon points="0,35 13.2917,35 0,41.6458" fill="#006" />
+    <polygon points="6.7082,45 25,35.8541 25,45" fill="#006" />
+
+    <polygon points="35,45 35,35.8541 53.2918,45" fill="#006" />
+    <polygon points="60,41.6458 46.7084,35 60,35" fill="#006" />
+
+    <polygon points="60,25 46.7083,25 60,18.3541" fill="#006" />
+    <polygon points="35,15 35,24.1459 53.2918,15" fill="#006" />
+
+    <polygon points="25,15 25,24.1459 6.7081,15" fill="#006" />
+</svg>

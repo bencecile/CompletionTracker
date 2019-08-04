@@ -1,14 +1,14 @@
 <template>
-    <div class="formSelect theme-light1"
+    <div class="formSelect text-line theme-light2"
+        :class="{ 'focus-input': inFocus }"
         @focusin="setFocus(true)" @focusout="setFocus(false)"
         @keydown.down="moveSelection(true)" @keydown.up="moveSelection(false)"
-        @keydown.enter="makeSelection">
-        <input :id="id" class="formSelect-text" type="text"
-            v-model="text" @input="updateTyping">
-        <svg class="formSelect-expander" xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 100 100"
-            @click="buttonFocus"
-            :class="{ 'theme-primary': inFocus }">
+        @keyup.enter="makeSelection">
+        <input class="formSelect-text" type="text"
+            :id="id" v-model="text" @input="updateTyping">
+        <svg class="formSelect-expander text" viewBox="0 0 100 100"
+            :class="{ 'theme-light5': inFocus }"
+            @click="buttonFocus">
             <!-- Create a menu-looking thing -->
             <!-- These are the small dots on the left side -->
             <rect x="20" y="25" width="10" height="10" />
@@ -20,11 +20,12 @@
             <rect x="40" y="45" width="40" height="10" />
             <rect x="40" y="65" width="40" height="10" />    
         </svg>
-        <div class="formSelect-options theme-light1"
+        <div class="formSelect-options theme-light2"
             tabindex="-1"
             :class="{ closed: !inFocus }">
             <div v-for="(option, i) in filteredOptions" :key="option.originalIndex"
-                :class="{ 'theme-primary': selected === option.originalIndex }"
+                class="text-line"
+                :class="{ 'theme-light5': selected === option.originalIndex }"
                 @mouseover="setSelection(i)" @click="makeSelection">
                 {{option.text}}
             </div>
@@ -41,24 +42,22 @@ export default {
         defaultValue: { type: String, default: null },
         // The ID of the input field to use
         id: { type: String, required: true },
+        value: { type: String, required: true },
     },
     data() {
         var text = "";
-        var value = "";
         var selected = 0;
         if (this.defaultValue) {
             // Find the value in the options
             selected = this.options.findIndex((option) => option[0] === this.defaultValue);
-            if (!selected) {
+            if (selected === -1) {
                 console.error("Failed to find the default value", this.defaultValue);
             }
-            [value, text] = this.options[selected];
+            text = this.options[selected][1];
         }
         return {
             // The text that's showing
             text,
-            // The actual value of the select
-            value,
             // The selected option as an index
             selected,
             // A flag for when the user starts typing
@@ -108,6 +107,9 @@ export default {
             if (!found && filtered[0]) {
                 this.selected = filtered[0].originalIndex;
             }
+
+            // Fire off the custom input event
+            this.$emit('input', event.target.value);
         },
         // Sets the focus on the select form
         setFocus(newFocus) {
@@ -118,6 +120,13 @@ export default {
             this.buttonLock = true;
 
             this.inFocus = newFocus;
+            if (!this.inFocus) {
+                // Make sure the text in the box is correct
+                // The user could have typed but without making a selection the value is still old
+                this.text = this.options[this.selected][1];
+                // Reset the typing status so that everything can be seen if we re-focus
+                this.startedTyping = false;
+            }
 
             // Unlock the focus gate some time later
             this.focusTracker.setTimeout(300, this);
@@ -165,13 +174,21 @@ export default {
             this.selected = this.filteredOptions[filteredIndex].originalIndex;
         },
         // Makes the selection, making the value now associated to the selected index
-        makeSelection() {
-            [this.value, this.text] = this.options[this.selected];
+        makeSelection(event) {
+            // If this was started from an event, we want to stop the propagation
+            if (event && this.inFocus) { event.stopPropagation(); }
+            this.sendInputEvent();
             // Remove the focus to show that something has been picked
-            this.inFocus = false;
-            // Reset the typing status of this field so that everything can be seen again
-            this.startedTyping = false;
+            this.setFocus(false);
         },
+        // Sends the input event to the parent so that the model value can change
+        sendInputEvent() {
+            this.$emit("input", this.options[this.selected][0]);
+        },
+    },
+    mounted() {
+        // Make sure that the modelled value has something
+        this.sendInputEvent();
     },
 }
 </script>
@@ -182,21 +199,23 @@ export default {
     display: flex;
 }
 .formSelect-text {
-    width: 10em;
+    width: calc(100% - 0.5em);
+    padding: 0 0.25em;
 }
 .formSelect-expander {
     width: 1.5em;
     fill: currentColor;
+    transition: all 300ms ease;
 }
 .formSelect-options {
     position: absolute;
+    top: 100%;
     z-index: 1;
-    top: 1.5em;
     border-top: 1px solid #222;
     box-shadow: 0 0.25em 0.5em 0 rgba(0,0,0,0.2);
     max-height: 10em;
     width: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
 
     transition: all 300ms ease;
 }

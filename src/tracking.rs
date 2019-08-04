@@ -1,8 +1,10 @@
+use std::collections::{BTreeMap};
 use std::fs::{DirBuilder};
 use std::path::{Path, PathBuf};
 
 use serde_derive::{Deserialize, Serialize};
 
+use crate::types::{Date};
 use crate::utils;
 
 /// The tracking folder for the tracking JSON files
@@ -12,7 +14,6 @@ const DEFAULT_TRACKING_FILE: &'static str = "tracking.json";
 
 /// Keeps track of information that needs to be tracked
 /// Each one is completely separate from any other
-#[derive(Debug)]
 pub struct Tracker {
     tracking_file: PathBuf,
     tracker_data: TrackerData,
@@ -72,8 +73,12 @@ impl Tracker {
 
 /// All of the data that a tracker will carry around
 /// This is what will be written into the tracking file
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct TrackerData {
+    /// This is the tracking information for the sources using their ID as the key
+    sources: BTreeMap<u64, Vec<TrackerEntry>>,
+    /// This is tracking for other things that don't have a source yet.
+    other: BTreeMap<String, Vec<TrackerEntry>>,
 }
 impl TrackerData {
     /// Tries to create new tracker data from the file
@@ -83,9 +88,55 @@ impl TrackerData {
             // Read the JSON since we actually have a file here
             utils::read_json_file(file)
         } else {
-            // Create some new data
+            // Create new, empty data
             Ok(TrackerData {
+                sources: BTreeMap::new(),
+                other: BTreeMap::new(),
             })
         }
     }
+}
+#[derive(Clone, Deserialize, Serialize)]
+pub struct TrackerEntry {
+    /// All of the status updates for the entry.
+    /// A status may only have an update once at most. Although the time status for it may change.
+    status_updates: BTreeMap<CompletionStatus, Option<TrackerTimeStatus>>,
+    /// A description of the completion.
+    /// A common usage would be to fill it in with in the platform for a game.
+    description: String,
+    /// The current time status for the entry.
+    /// It might be useful to keep track of the time status of the entry without needing a
+    /// new status update.
+    current_time: Option<TrackerTimeStatus>,
+    /// The date when this entry was last updated
+    last_updated: Date,
+}
+
+/// A Date and time in seconds.
+/// The Date is required, but the time might not always be known so it's optional.
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub struct TrackerTimeStatus {
+    /// The date in year, months and day
+    date: Date,
+    /// The completion time of the entry in seconds.
+    /// This should only be set once the status is set to a variation of "complete".
+    /// This generally only makes sense for games, but you could use it for anything.
+    /// The rule for this would be to use "play time" instead of "real time".
+    time: Option<u64>,
+}
+
+/// This is the status of the source we're tracking.
+/// We don't need a "not started" status since that's just all the other sources
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Deserialize, Serialize)]
+pub enum CompletionStatus {
+    /// The source has been started reading, playing, watching, etc.
+    InProgress,
+    /// The source has been done to the end.
+    /// Read to the end of the book, watched until the credits, etc.
+    Complete,
+    /// Games only. Not only is the game finished, it has been completed as much as possible.
+    /// If the game has achievements then this is when all of them have been unlocked.
+    /// If there are no achievements then it would be up to whatever the player deems
+    /// "most complete".
+    GameComplete,
 }

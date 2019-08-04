@@ -1,0 +1,89 @@
+<svg viewBox="0 0 190 190">
+    <defs>
+        <path id="usFlag-star" d="
+            m -2.9261,-0.95107
+            h 2.2353
+            l 0.6907,-2.1258
+            l 0.6907,2.1258
+            h 2.2353
+            l -1.8083,1.3141
+            l 0.6907,2.1261
+            l -1.8086,-1.3141
+            l -1.8086,1.3141
+            l 0.6907,-2.1261
+            l -1.8083,-1.3141
+        " fill="#FFF" />
+        <rect id="usFlag-stripe" x="0" width="190" height="7.6923" fill="#B22234" />
+    </defs>
+
+    <rect x="0" y="45" width="190" height="100" fill="#FFF" />
+
+    <use href="#usFlag-stripe" y="45" />
+    <use href="#usFlag-stripe" y="60.3846" />
+    <use href="#usFlag-stripe" y="75.7692" />
+    <use href="#usFlag-stripe" y="91.1538" />
+    <use href="#usFlag-stripe" y="106.5384" />
+    <use href="#usFlag-stripe" y="121.923" />
+    <use href="#usFlag-stripe" y="137.3076" />
+
+    <rect x="0" y="45" width="76" height="53.8461" fill="#3C3B6E" />
+
+    <use href="#usFlag-star" x="6.3333" y="50.3846" />
+    <use href="#usFlag-star" x="19" y="50.3846" />
+    <use href="#usFlag-star" x="31.6666" y="50.3846" />
+    <use href="#usFlag-star" x="44.3333" y="50.3846" />
+    <use href="#usFlag-star" x="57" y="50.3846" />
+    <use href="#usFlag-star" x="69.6666" y="50.3846" />
+
+    <use href="#usFlag-star" x="12.6666" y="55.7692" />
+    <use href="#usFlag-star" x="25.3333" y="55.7692" />
+    <use href="#usFlag-star" x="38" y="55.7692" />
+    <use href="#usFlag-star" x="50.6666" y="55.7692" />
+    <use href="#usFlag-star" x="63.3333" y="55.7692" />
+
+    <use href="#usFlag-star" x="6.3333" y="61.1538" />
+    <use href="#usFlag-star" x="19" y="61.1538" />
+    <use href="#usFlag-star" x="31.6666" y="61.1538" />
+    <use href="#usFlag-star" x="44.3333" y="61.1538" />
+    <use href="#usFlag-star" x="57" y="61.1538" />
+    <use href="#usFlag-star" x="69.6666" y="61.1538" />
+
+    <use href="#usFlag-star" x="12.6666" y="66.5384" />
+    <use href="#usFlag-star" x="25.3333" y="66.5384" />
+    <use href="#usFlag-star" x="38" y="66.5384" />
+    <use href="#usFlag-star" x="50.6666" y="66.5384" />
+    <use href="#usFlag-star" x="63.3333" y="66.5384" />
+
+    <use href="#usFlag-star" x="6.3333" y="71.923" />
+    <use href="#usFlag-star" x="19" y="71.923" />
+    <use href="#usFlag-star" x="31.6666" y="71.923" />
+    <use href="#usFlag-star" x="44.3333" y="71.923" />
+    <use href="#usFlag-star" x="57" y="71.923" />
+    <use href="#usFlag-star" x="69.6666" y="71.923" />
+
+    <use href="#usFlag-star" x="12.6666" y="77.3076" />
+    <use href="#usFlag-star" x="25.3333" y="77.3076" />
+    <use href="#usFlag-star" x="38" y="77.3076" />
+    <use href="#usFlag-star" x="50.6666" y="77.3076" />
+    <use href="#usFlag-star" x="63.3333" y="77.3076" />
+
+    <use href="#usFlag-star" x="6.3333" y="82.6923" />
+    <use href="#usFlag-star" x="19" y="82.6923" />
+    <use href="#usFlag-star" x="31.6666" y="82.6923" />
+    <use href="#usFlag-star" x="44.3333" y="82.6923" />
+    <use href="#usFlag-star" x="57" y="82.6923" />
+    <use href="#usFlag-star" x="69.6666" y="82.6923" />
+    
+    <use href="#usFlag-star" x="12.6666" y="88.0769" />
+    <use href="#usFlag-star" x="25.3333" y="88.0769" />
+    <use href="#usFlag-star" x="38" y="88.0769" />
+    <use href="#usFlag-star" x="50.6666" y="88.0769" />
+    <use href="#usFlag-star" x="63.3333" y="88.0769" />
+    
+    <use href="#usFlag-star" x="6.3333" y="93.4615" />
+    <use href="#usFlag-star" x="19" y="93.4615" />
+    <use href="#usFlag-star" x="31.6666" y="93.4615" />
+    <use href="#usFlag-star" x="44.3333" y="93.4615" />
+    <use href="#usFlag-star" x="57" y="93.4615" />
+    <use href="#usFlag-star" x="69.6666" y="93.4615" />
+</svg>

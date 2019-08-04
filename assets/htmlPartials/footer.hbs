@@ -1,3 +1,10 @@
-<div>
-    <!-- May want to have a Github link -->
-</div>
+<div id="footer"></div>
+
+<script>
+    const footerVm = new Vue({
+        el: "#footer",
+        template: `<footerContent
+version="{{version}}"
+/>`,
+    });
+</script>

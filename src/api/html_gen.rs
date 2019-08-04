@@ -5,12 +5,12 @@ use handlebars::{Handlebars, RenderError};
 
 use serde_json::{self, Value};
 
-use crate::settings::{Settings};
+use crate::lang::{UILang, UIStrings};
 
 /// The directory for the HTML templates
-const TEMPLATE_DIR: &'static str = "htmlTemplates";
+const TEMPLATE_DIR: &'static str = "assets/htmlTemplates";
 /// The directory for the handlebar partials
-const PARTIAL_DIR: &'static str = "htmlPartials";
+const PARTIAL_DIR: &'static str = "assets/htmlPartials";
 
 pub struct HtmlGenerator {
     handlebars: Handlebars,
@@ -26,46 +26,34 @@ impl HtmlGenerator {
     /// Does the generate, but creates a new Handlebars instance to fetch any changed files.
     /// This is only when debugging.
     #[cfg(debug_assertions)]
-    pub fn generate(&self, settings: &Settings, template_name: &str, mut data: Value)
+    pub fn generate(&self, template_name: &str, mut data: Value)
     -> Result<String, RenderError> {
-        HtmlGenerator::modify_data(settings, &mut data);
+        HtmlGenerator::modify_data(&mut data);
         init_handlebars().unwrap()
             .render(template_name, &data)
     }
     /// Generate the HTML file by looking up the template.
     /// Inserts some extra keys that will pretty much always be needed.
     #[cfg(not(debug_assertions))]
-    pub fn generate(&self, settings: &Settings, template_name: &str, mut data: Value)
+    pub fn generate(&self, template_name: &str, mut data: Value)
     -> Result<String, RenderError> {
-        HtmlGenerator::modify_data(settings, &mut data);
+        HtmlGenerator::modify_data(&mut data);
         self.handlebars.render(template_name, &data)
     }
 
-    /// Generates HTML from the template string.
-    /// Remakes a new Handlebars when debugging.
-    #[cfg(not(debug_assertions))]
-    pub fn generate_from_string(&self, settings: &Settings, template_str: &str, mut data: Value)
-    -> Result<String, RenderError> {
-        HtmlGenerator::modify_data(settings, &mut data);
-        init_handlebars().unwrap()
-            .render_template(template_str, &data)
-    }
-    /// Generates HTML from the template string
-    #[cfg(not(debug_assertions))]
-    pub fn generate_from_string(&self, settings: &Settings, template_str: &str, mut data: Value)
-    -> Result<String, RenderError> {
-        HtmlGenerator::modify_data(settings, &mut data);
-        self.handlebars.render_template(template_str, &data)
-    }
-
     /// Modifies the data before it gets used for rendering
-    fn modify_data(settings: &Settings, data: &mut Value) {
+    fn modify_data(data: &mut Value) {
         let data_map = data.as_object_mut().unwrap();
         file_paths::modify_data_map(data_map);
+
         // Insert the language strings
-        data_map.insert("lang_strings".to_string(), serde_json::to_value(
-            settings.lang_ui()
-        ).unwrap());
+        data_map.insert("ui_strings".to_string(),
+            serde_json::to_value(UIStrings::new()).unwrap());
+        // Insert all of the languages that could be displayed
+        data_map.insert("langs".to_string(),
+            serde_json::to_value(UILang::all_short_str()).unwrap());
+        // Inject the compiled version string
+        data_map.insert("version".to_string(), Value::String(crate::VERSION.to_string()));
     }
 }
 
@@ -96,6 +84,9 @@ fn init_handlebars() -> Result<Handlebars, String> {
     handlebars.register_templates_directory(".hbs", TEMPLATE_DIR)
         .map_err(|e| e.to_string())?;
 
+    // Register the helpers
+    handlebars_helpers::register_helpers(&mut handlebars);
+
     Ok(handlebars)
 }
 
@@ -114,5 +105,38 @@ mod file_paths {
         data_map.insert("file_paths".to_string(), json!({
             "vue": vue(),
         }));
+    }
+}
+
+mod handlebars_helpers {
+    //! A nice module to keep all of the helpers to use with Handlebars
+    use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext};
+
+    /// Registers all of the helpers in the module onto the Handlebars object
+    pub fn register_helpers(handlebars: &mut Handlebars) {
+        handlebars.register_helper("camelCase", Box::new(camel_case));
+    }
+
+    /// Turns a snake_case string into a camelCase string
+    fn camel_case(h: &Helper, _: &Handlebars, _: &Context, _rc: &mut RenderContext,
+    out: &mut Output) -> HelperResult {
+        // Get the parameter we want to camel case
+        let param = h.param(0).and_then(|v| v.value().as_str()).unwrap_or("");
+        // Split the thing at all of the underscores
+        let mut split = param.split("_");
+        // Push the entire first part in normally, but uppercase the first letter of all the next
+        out.write(split.next().unwrap())?;
+
+        split.for_each(|split_part| {
+            if split_part.len() > 0 {
+                // Uppercase the character right after
+                // This assumes the first character will always just be a single byte
+                out.write(&split_part[0..1].to_uppercase());
+                // Give it the rest of the string
+                out.write(&split_part[1..]);
+            }
+        });
+
+        Ok(())
     }
 }

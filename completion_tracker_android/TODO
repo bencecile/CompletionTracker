@@ -1,0 +1,2 @@
+1. Make a new rust project here that can compile to a static linkable library
+2. Expose an API for Java to use

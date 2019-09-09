@@ -1,57 +1,43 @@
-mod api;
-mod automate;
-mod lang;
-mod logging;
 mod run_info;
-mod source;
-mod source_concrete;
-mod tracking;
-mod types;
-mod utils;
+mod static_server;
 
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread;
-use std::time::{Duration};
+use rouille::{Response, Server, router};
 
-use rouille::{Server};
-
-use crate::api::{Api};
-use crate::logging::{MyLogger};
 use crate::run_info::{RunInfo};
+use crate::static_server::{StaticServer};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-// This is the signal to exit the program
-static SHUTDOWN_SIGNAL: AtomicBool = AtomicBool::new(false);
-// The time to wait before polling the connection
-const POLL_WAIT_TIME: Duration = Duration::from_millis(20);
-
 fn main() -> Result<(), String> {
-    // Init the logging very first
-    MyLogger::init();
+    let run_info = RunInfo::new_default()
+        .map_err(|e| format!("Error in the runInfo.json: {}", e))?;
+    let trackers = run_info.trackers()?;
 
-    // Read in the run info to create our things
-    let run_info = RunInfo::new_default()?;
-
-    log::info!("Creating the API struct");
-    // Create the API that will actually handle the calls
-    let api = Api::new(run_info.trackers()?)?;
+    let sources_connection = completion_tracker_lib::init_source_db()?;
 
     // Start up the server
-    let server = Server::new(run_info.socket_addr(), move |req| api.handle_request(req))
-        .expect("Failed to create the server");
+    let server = Server::new(run_info.socket_addr(), move |req| router!(req,
+        (GET) (/jsbundle) => { StaticServer.serve_bundle_js() },
+        _ => {
+            if req.method() == "GET" {
+                // Send the main page, inserting the path after the "#"
+                //  This is good for saved pages (bookmarks or otherwise)
+                StaticServer.serve_main_html()
+            } else {
+                // The only time we should ever hit this is if the frontend misses a call
+                //  or somebody navigates somewhere else directly
+                // In both cases, a normal 404 should be enough to tell them to
+                //  take their business elsewhere
+                Response::empty_404()
+            }
+        },
+        // All the other real API calls
+    )).expect("Failed to create the server");
     // Set the fixed pool size to something small since this is only running locally
     let server = server.pool_size(10);
 
-    // Print out where the server is running and how you can get to it
-    log::info!("Running on {}", server.server_addr());
-
-    while !SHUTDOWN_SIGNAL.load(Ordering::Relaxed) {
-        // Check for any connections
-        server.poll();
-        // Wait until we check again
-        thread::sleep(POLL_WAIT_TIME);
-    }
+    println!("Running on {}", server.server_addr());
+    server.run();
 
     Ok(())
 }

@@ -1,11 +1,2 @@
 /target
 **/*.rs.bk
-
-# Ignore the specific (detailed) (and possibly sensitive) json file
-/runInfo.json
-
-# We don't want to check in log files
-*.log
-
-# Don't commit any created docs used for development
-/tempDocs

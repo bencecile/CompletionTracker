@@ -1,0 +1,12 @@
+{
+    "port": 8080,
+    "local_tracking_folder": "./",
+    "trackers": [{
+        "tracker_name": null,
+        "game_id": {
+            "psn_id": "ProdigalPhoenix",
+            "xbox_id": "Phoenixien",
+            "steam_id": "Phoenixien"
+        }
+    }]
+}

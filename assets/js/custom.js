@@ -38,9 +38,8 @@ CompletionTracker.SimpleFetch = {
     },
 };
 
-CompletionTracker.emptyContentLangMap = function() {
-    return {
-        english: "",
-        japanese: "",
-    };
-}
+// Make a navigation holder where we can stuff things on a navigation
+//  This will be good for data objects that we would otherwise have to fetch from the server
+CompletionTracker.navigationHolder = {
+    holder: null
+};

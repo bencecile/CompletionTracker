@@ -3,13 +3,35 @@ const LOCALE_JP = "jp";
 
 // Having them closer together is nicer to see what we're using
 const allLangStrings = {
+    // Translations for the content Langs
+    English: {
+        [LOCALE_EN]: "English",
+        [LOCALE_JP]: "英語",
+    },
+    Japanese: {
+        [LOCALE_EN]: "Japanese",
+        [LOCALE_JP]: "日本語",
+    },
+
     completion_tracker: {
         [LOCALE_EN]: "Completion Tracker",
         [LOCALE_JP]: "成績トラッカー",
     },
+    create: {
+        [LOCALE_EN]: "Create",
+        [LOCALE_JP]: "作成",
+    },
+    current_content_lang: {
+        [LOCALE_EN]: "Current Content Language: {0}",
+        [LOCALE_JP]: "現在の内容言語：{0}",
+    },
     home: {
         [LOCALE_EN]: "Home",
         [LOCALE_JP]: "ホーム",
+    },
+    name: {
+        [LOCALE_EN]: "Name",
+        [LOCALE_JP]: "名",
     },
     universe_tags: {
         [LOCALE_EN]: "Universe Tags",
@@ -37,3 +59,28 @@ CompletionTracker.makeI18nStrings = function() {
     }
     return formattedStrings;
 }
+
+CompletionTracker.contentLang = {
+    all() {
+        return [
+            "English",
+            "Japanese",
+        ];
+    },
+    emptyMap() {
+        return {
+            English: "",
+            Japanese: "",
+        };
+    },
+    fromLocale(i18n) {
+        switch (i18n.locale) {
+            case LOCALE_EN:
+                return "English";
+            case LOCALE_JP:
+                return "Japanese";
+            default:
+                return this.all()[0];
+        }
+    },
+};

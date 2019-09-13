@@ -20,4 +20,4 @@ features = ["serde"]
 
 [dependencies.rusqlite]
 version = "0.20.0"
-features = ["bundled", "chrono", "url"]
+features = ["bundled", "chrono", "functions", "url"]

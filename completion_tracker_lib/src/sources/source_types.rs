@@ -1,18 +1,19 @@
 use std::collections::{BTreeMap};
 
 use serde::ser::{SerializeStruct};
-use serde_derive::{Serialize};
-use url::{Url};
+use serde_derive::{Deserialize, Serialize};
+use url::{Url, Host};
 
-use super::simple_enum::{SimpleEnum};
 use crate::{impl_sql_simple_enum};
+use crate::simple_enum::{SimpleEnum};
 
-#[derive(Copy, Clone, Serialize, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Deserialize, Serialize, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Lang {
     English,
     Japanese,
 }
 pub type LangMap = BTreeMap<Lang, String>;
+pub type LangMapList = BTreeMap<Lang, Vec<String>>;
 
 impl SimpleEnum for Lang {
     fn all() -> &'static [Lang] {
@@ -31,7 +32,7 @@ impl SimpleEnum for Lang {
 impl_sql_simple_enum!(Lang);
 
 
-#[derive(Copy, Clone, Serialize)]
+#[derive(Copy, Clone, Deserialize, Serialize)]
 pub enum Relation {
     Before,
     After,
@@ -59,6 +60,33 @@ pub struct RelatedLink {
     url: Url,
     link_type: LinkType,
     descriptions: LangMap,
+}
+impl RelatedLink {
+    pub fn new(url: &str, descriptions: LangMap) -> Result<RelatedLink, String> {
+        let url = Url::parse(url).map_err(|e| e.to_string())?;
+        let host = if let Some(host) = url.host() {
+            match host {
+                Host::Domain(string) => string,
+                Host::Ipv4(_) | Host::Ipv6(_) =>
+                    return Err(format!("The URL cannot be an IP address: {}", url.as_str())),
+            }
+        } else {
+            return Err(format!("Failed to find a host for: {}", url.as_str()));
+        };
+        let link_type = if let Some(link_type) = LinkType::from_host(host) {
+            link_type
+        } else {
+            return Err(format!("Failed to find a link type for: {}", url.as_str()));
+        };
+        Ok(RelatedLink {
+            url,
+            link_type,
+            descriptions,
+        })
+    }
+    pub fn url(&self) -> &Url { &self.url }
+    pub fn link_type(&self) -> LinkType { self.link_type }
+    pub fn descriptions(&self) -> &LangMap { &self.descriptions }
 }
 impl serde::Serialize for RelatedLink {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -98,7 +126,7 @@ impl LinkType {
             ("wikipedia.org", Self::Wikipedia),
         ]
     }
-    pub fn from_host(host: &str) -> Option<LinkType> {
+    fn from_host(host: &str) -> Option<LinkType> {
         for (host_part, link_type) in LinkType::host_pairs().iter() {
             if host.contains(host_part) { return Some(*link_type); }
         }

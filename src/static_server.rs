@@ -31,10 +31,10 @@ impl StaticServer {
                         path: "/",
                         component: Vue.component("homeView")
                     }, {
-                        path: "/universe_tags",
+                        path: "/universeTags",
                         component: Vue.component("universeTagsView")
                     }, {
-                        path: "/universe_tags/new",
+                        path: "/universeTags/new",
                         component: Vue.component("universeTagsNewView")
                     },
                 ],
@@ -42,6 +42,10 @@ impl StaticServer {
             router.beforeEach((to, from, next) => {
                 document.title = `SET FOR ${to.path}`;
                 next();
+            });
+            router.afterEach((to, from) => {
+                // Clear out the navigation holder so that other things don't have to
+                CompletionTracker.navigationHolder.holder = null;
             });
             const mainVue = new Vue({
                 el: "#mainPlaceholder",

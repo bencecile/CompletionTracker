@@ -2,7 +2,9 @@
     <div id="mainContainer">
         <div id="header">
             <router-link to="/">{{ $t("home") }}</router-link>
-            <router-link to="/universe_tags">{{ $t("universe_tags") }}</router-link>
+            <router-link to="/sources">{{ $t("sources") }}</router-link>
+            <router-link to="/universeTags">{{ $t("universe_tags") }}</router-link>
+            <contentLangPicker/>
         </div>
         <div id="main">
             <router-view></router-view>
@@ -14,9 +16,6 @@ export default {
     data() {
         return {
         };
-    },
-    created() {
-        document.title = this.$t("home") + " | " + this.$t("completion_tracker");
     },
 }
 </script>

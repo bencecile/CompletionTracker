@@ -1,6 +1,6 @@
 use rusqlite::{Error as SqlError};
 
-use super::{UniverseTagReader};
+use super::{UniverseTagReadResult, UniverseTagReader};
 use crate::db_link::{ConnectionHolder};
 use crate::sources::api::{self, DBSourceRelation};
 use crate::sources::source_types::{RelatedLink};
@@ -22,9 +22,41 @@ pub fn read_root_level_ids(db: &ConnectionHolder) -> Result<Vec<u64>, String> {
 }
 
 // TODO Instead of just IDs, we could pass an options object. This would have the IDs and other options to specify what gets returned (like not getting sources or other things)
-pub fn read_list(db: &ConnectionHolder, ids: Vec<u64>)
--> Result<Vec<UniverseTagReader>, String> {
-    let db = db.lock();
+pub fn read_list(db: &ConnectionHolder, reader: UniverseTagReader)
+-> Result<Vec<UniverseTagReadResult>, String> {
+    let mut db = db.lock();
+
+    let id_count = reader.ids.len();
+
+    {
+        let transaction = db.transaction()
+            .map_err(|e| e.to_string())?;
+
+        {
+            // Always drop the index first since it will slow down inserts
+            transaction.execute_batch("
+                DROP INDEX IF EXISTS TempUniverseTagIDIndex;
+                CREATE TEMPORARY TABLE IF NOT EXISTS TempUniverseTagRead (
+                    id INTEGER NOT NULL
+                );
+                DELETE FROM TempUniverseTagRead;
+            ").map_err(|e| e.to_string())?;
+            let mut insert_temp_id_statement = transaction.prepare("
+                INSERT INTO TempUniverseTagRead VALUES (?)
+            ").map_err(|e| e.to_string())?;
+            for id in reader.ids {
+                insert_temp_id_statement.execute(&[id as i64])
+                    .map_err(|e| e.to_string())?;
+            }
+            // We can't be in a transaction when querying stuff
+            transaction.execute_batch("
+                CREATE INDEX TempUniverseTagIDIndex ON TempUniverseTagRead(id);
+            ").map_err(|e| e.to_string())?;
+        }
+
+        transaction.commit()
+            .map_err(|e| e.to_string())?;
+    }
 
     let mut get_strings_statement = api::prepare_strings_get(&db)?;
     let mut get_children_statement = db.prepare(
@@ -47,32 +79,6 @@ pub fn read_list(db: &ConnectionHolder, ids: Vec<u64>)
         SELECT source_id FROM SourceUniverseTags
             WHERE universe_tag_id=?
     ").map_err(|e| e.to_string())?;
-
-    db.execute_batch("
-        BEGIN TRANSACTION;
-        CREATE TEMPORARY TABLE IF NOT EXISTS TempUniverseTagRead (
-            id INTEGER NOT NULL REFRENCES UnvierseTag(id)
-        );
-    ").map_err(|e| e.to_string())?;
-    let mut insert_temp_id_statement = db.prepare("
-        INSERT INTO TempUniverseTagRead VALUES (?)
-    ").map_err(|e| e.to_string())?;
-    for id in ids {
-        insert_temp_id_statement.execute(&[id as i64])
-            .map_err(|e| e.to_string())?;
-    }
-    // We can't be in a transaction when querying stuff
-    db.execute_batch("
-        CREATE INDEX TempUniverseTagIDIndex ON TempUniverseTagRead(id);
-        COMMIT;
-    ").map_err(|e_commit| {
-        if let Err(e_rollback) = db.execute_batch("ROLLBACK;") {
-            format!("Failed to read UniverseTags ({}). Also failed to Rollback ({})",
-                e_commit, e_rollback)
-        } else {
-            format!("Failed to read UniverseTags ({})", e_commit)
-        }
-    })?;
 
     let mut get_universe_tags_statement = db.prepare("
         SELECT id, names, descriptions FROM UniverseTags
@@ -137,7 +143,7 @@ pub fn read_list(db: &ConnectionHolder, ids: Vec<u64>)
             Ok(source_id as u64)
         }))?;
 
-        Ok(UniverseTagReader {
+        Ok(UniverseTagReadResult {
             id: id as u64,
             names,
             descriptions,
@@ -152,10 +158,14 @@ pub fn read_list(db: &ConnectionHolder, ids: Vec<u64>)
     let universe_tags = api::collect_query_map(mapped_tags)
         .map_err(|e| e.to_string())?;
 
-    db.execute_batch("
-        DROP INDEX TempUniverseTagIDIndex;
-        DELETE FROM TempUniverseTagRead;
-    ").map_err(|e| e.to_string())?;
-
-    Ok(universe_tags)
+    if universe_tags.len() == id_count {
+        Ok(universe_tags)
+    } else {
+        let mut id_list = String::from("[");
+        for universe_tag in universe_tags {
+            id_list.push_str(&format!("{},", universe_tag.id));
+        }
+        id_list.push_str("]");
+        Err(format!("Failed to find enough Universe Tags. Found {}", &id_list))
+    }
 }

@@ -1,5 +1,6 @@
 pub mod character;
 pub mod people;
+pub mod search;
 pub mod universe_tag;
 
 use rusqlite::{Connection, Result as SqlResult, Row, Statement};
@@ -72,14 +73,18 @@ fn insert_new_lang_map(map: &LangMap, db: &Connection) -> Result<(), String> {
     ).map(|_| ()).map_err(|e| e.to_string())
 }
 fn prepare_strings_get(db: &Connection) -> Result<Statement, String> {
-    db.prepare("SELECT (english, japanese) FROM Strings WHERE id=?")
+    db.prepare("SELECT english, japanese FROM Strings WHERE id=?")
         .map_err(|e| e.to_string())
 }
 /// This assumes that the row was SELECTed from the prepare_strings_get()
 fn make_lang_strings_from_row(row: &Row) -> LangMap {
     let mut lang_map = LangMap::new();
-    lang_map.insert(Lang::English, row.get_unwrap(0));
-    lang_map.insert(Lang::Japanese, row.get_unwrap(1));
+    let english: Option<String> = row.get_unwrap(0);
+    let japanese: Option<String> = row.get_unwrap(1);
+
+    if let Some(english) = english { lang_map.insert(Lang::English, english); }
+    if let Some(japanese) = japanese { lang_map.insert(Lang::Japanese, japanese); }
+
     lang_map
 }
 

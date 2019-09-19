@@ -6,6 +6,9 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     fs::write(out_dir.join("bundle.js"), all_js::bundle_components())
         .expect("Failed to write the bundle js file");
+
+    fs::copy("assets/main.html", out_dir.join("main.html"))
+        .expect("Failed to copy the main html");
 }
 
 /// This module will handle the building of Vue files and making them into something useable
@@ -27,6 +30,16 @@ mod all_js {
     const STYLE_TAG: &'static str = "<style>";
     const STYLE_TAG_END: &'static str = "</style>";
 
+    /// Bundles all of the Vue components together into a single file
+    pub fn bundle_components() -> Vec<u8> {
+        let mut bundled_js = Vec::new();
+
+        append_js_files(&mut bundled_js);
+        append_vue_components(&mut bundled_js);
+        append_svg_components(&mut bundled_js);
+
+        bundled_js
+    }
 
     /// Finds the content within the tag in the search data
     fn find_tag_content<'s>(search_data: &'s str, tag: &str, tag_end: &str) -> &'s str {
@@ -42,42 +55,40 @@ mod all_js {
         search_data[start_index..end_index].trim()
     }
 
-    /// Bundles all of the Vue components together into a single file
-    pub fn bundle_components() -> Vec<u8> {
-        let mut bundled_js = Vec::new();
-
+    fn append_js_files(bundled_js: &mut Vec<u8>) {
         let js_dir = Path::new(JS_DIR);
-        let mut write_js_data = |file_path| {
+        let mut write_js_data = |file_path, use_strict| {
+            let use_strict = if use_strict {
+                "'use strict';\n"
+            } else {
+                ""
+            };
             let js_data = fs::read_to_string(js_dir.join(file_path))
                 .expect("Failed to read a JS file");
             write!(bundled_js, r#"
 (function() {{
-{js_data}
-}})();"#, js_data=js_data)
+{use_strict}{js_data}
+}})();"#, js_data=js_data, use_strict=use_strict)
                 .expect("Failed to write the JS data");
         };
 
         if cfg!(debug_assertions) {
-            write_js_data("vue@2.6.10.js");
-            write_js_data("vue-router@3.1.3.js");
-            write_js_data("vue-i18n@8.14.0.js");
+            write_js_data("vue@2.6.10.js", false);
+            write_js_data("vue-router@3.1.3.js", false);
+            write_js_data("vue-i18n@8.14.0.js", false);
         } else {
             // Write the minfied JS instead for when we're in release
-            write_js_data("vue@2.6.10.min.js");
-            write_js_data("vue-router@3.1.3.min.js");
-            write_js_data("vue-i18n@8.14.0.min.js");
+            write_js_data("vue@2.6.10.min.js", false);
+            write_js_data("vue-router@3.1.3.min.js", false);
+            write_js_data("vue-i18n@8.14.0.min.js", false);
         }
-        write_js_data("custom.js");
-        write_js_data("langStrings.js");
-        write_js_data("settings.js");
+        write_js_data("langStrings.js", true);
+        write_js_data("settings.js", true);
+        write_js_data("plugin.js", true);
+    }
 
-        // Go through each vue component, appending them to the data
-        for file_path in super::read_dir(COMPONENT_DIR, true) {
-            // Just in case we have other types of files in there (hopefully temporarily)
-            if file_path.extension().unwrap().to_str().unwrap() != "vue" {
-                continue;
-            }
-
+    fn append_vue_components(bundled_js: &mut Vec<u8>) {
+        for file_path in super::read_dir(COMPONENT_DIR, "vue", true) {
             let component_data = fs::read_to_string(&file_path)
                 .expect("Failed to read a component");
 
@@ -94,44 +105,65 @@ mod all_js {
                 format!("template: `{}`,", template_data)
             };
             // Only add the function for the style if there is some style to use
-            let style_function = if style_data.is_empty() {
+            let style_block = if style_data.is_empty() {
                 String::new()
             } else {
                 format!(r#"
-(function() {{
     const style = document.createElement("style");
     style.innerHTML = `{}`;
-    document.head.appendChild(style);
-}})();"#, style_data)
+    document.head.appendChild(style);"#, style_data)
             };
 
             // Write a slightly elaborate JS string into our component data
             write!(bundled_js, r#"
-Vue.component("{file_name}", {{
-    {template_entry}
-    {script_data}
-}});{style_function}"#, file_name=file_path.file_stem().unwrap().to_str().unwrap(),
+(function() {{
+    "use strict";
+    Vue.component("{file_name}", {{
+        {template_entry}
+        {script_data}
+    }});{style_block}
+}})();"#, file_name=file_path.file_stem().unwrap().to_str().unwrap(),
             template_entry=template_entry,
             script_data=script_data,
-            style_function=style_function)
+            style_block=style_block)
                 .expect("Failed to write the component data");
         }
+    }
 
-        bundled_js
+    fn append_svg_components(bundled_js: &mut Vec<u8>) {
+        for svg_file in super::read_dir(COMPONENT_DIR, "svg", true) {
+            let svg_data = fs::read_to_string(&svg_file)
+                .expect("Failed to read a component");
+
+            write!(bundled_js, r#"
+(function() {{
+    "use strict";
+    const result = Vue.compile(`{svg_data}`);
+    Vue.component("{file_name}", {{
+        render: result.render,
+        staticRenderFns: result.staticRenderFns,
+    }});
+}})();"#, file_name=svg_file.file_stem().unwrap().to_str().unwrap(),
+            svg_data=svg_data)
+                .expect("Failed to write the svg component data");
+        }
     }
 }
 
 /// Gets all of the *files* from the directory.
 /// If recursive, it will read everything from all the sub-directories
 /// Panics if it's not a directory.
-fn read_dir(dir: impl AsRef<Path>, recursive: bool) -> impl Iterator<Item = PathBuf> {
+fn read_dir(dir: impl AsRef<Path>, ext: &'static str, recursive: bool)
+-> impl Iterator<Item = PathBuf> {
     fs::read_dir(dir).expect("Tried reading something that's not a directory")
         .filter_map(move |dir_entry| {
             // Get rid of everything that isn't a file (or dir if recursive)
             let dir_entry = dir_entry.expect("Failed to read a dir entry");
             let file_type = dir_entry.file_type().expect("Failed to read the file type");
-            if file_type.is_file() || (recursive && file_type.is_dir()) {
-                Some((dir_entry.path(), file_type))
+            let path = dir_entry.path();
+            if (file_type.is_file() && path.extension().unwrap().to_str().unwrap() == ext) ||
+                (recursive && file_type.is_dir()) {
+                Some((path, file_type))
             } else {
                 None
             }
@@ -144,7 +176,7 @@ fn read_dir(dir: impl AsRef<Path>, recursive: bool) -> impl Iterator<Item = Path
                 // Read this directory now too
                 // If it's a directory, we know that we are recursive since that's the
                 //  only way we can get a directory here
-                read_dir(file_path, recursive).collect::<Vec<PathBuf>>()
+                read_dir(file_path, ext, recursive).collect::<Vec<PathBuf>>()
             }
         })
 }

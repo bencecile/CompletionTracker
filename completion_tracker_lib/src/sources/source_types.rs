@@ -1,3 +1,6 @@
+mod roles;
+pub use roles::{CompanyRole, CompanyPersonRole, PersonRole};
+
 use std::collections::{BTreeMap};
 
 use serde::ser::{SerializeStruct};
@@ -166,12 +169,22 @@ impl SimpleEnum for SourceType {
         }
     }
 }
+impl_sql_simple_enum!(SourceType);
 
-#[derive(Copy, Clone, Serialize)]
-pub enum SourceRole {
-    Writer, // 著者
-    Illustrator, // イラスト
-    ComicArtist, // 漫画家 (絵だけ)
-    /// A character's ID
-    VoiceActor(u64), // 声優
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub enum Country {
+    Japan,
 }
+impl SimpleEnum for Country {
+    fn all() -> &'static [Country] {
+        &[
+            Self::Japan,
+        ]
+    }
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::Japan => "Japan",
+        }
+    }
+}
+impl_sql_simple_enum!(Country);

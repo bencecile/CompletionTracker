@@ -14,7 +14,7 @@ pub fn create_tables(db: &Connection) -> Result<(), String> {
             id INTEGER PRIMARY KEY,
             english TEXT,
             japanese TEXT,
-            CHECK(NOT is_empty(english) and NOT is_empty(japanese))
+            CHECK(NOT is_empty(english) OR NOT is_empty(japanese))
         );
     ").map_err(|e| format!("Error creating the Strings table: {}", e))?;
     db.execute_batch("
@@ -37,7 +37,7 @@ pub fn create_tables(db: &Connection) -> Result<(), String> {
             relation TEXT NOT NULL,
             UNIQUE(universe_tag_id1, universe_tag_id2)
         );
-        CREATE TABLE IF NOT EXISTS UniverseTagLinks (
+        CREATE TABLE IF NOT EXISTS UniverseTagRelatedLinks (
             id INTEGER PRIMARY KEY,
             universe_tag_id INTEGER NOT NULL REFERENCES UniverseTags(id),
             url TEXT NOT NULL,
@@ -49,7 +49,10 @@ pub fn create_tables(db: &Connection) -> Result<(), String> {
         CREATE TABLE IF NOT EXISTS People (
             id INTEGER PRIMARY KEY,
             names INTEGER NOT NULL REFERENCES Strings(id),
-            descriptions INTEGER NOT NULL REFERENCES Strings(id)
+            descriptions INTEGER NOT NULL REFERENCES Strings(id),
+            birth_country TEXT,
+            birth_date TEXT,
+            death_date TEXT
         );
         CREATE TABLE IF NOT EXISTS PersonAliases (
             id INTEGER PRIMARY KEY,
@@ -59,6 +62,22 @@ pub fn create_tables(db: &Connection) -> Result<(), String> {
             UNIQUE(person_id, lang, alias)
         );
     ").map_err(|e| format!("Error creating the People tables: {}", e))?;
+    db.execute_batch("
+        CREATE TABLE IF NOT EXISTS Companies (
+            id INTEGER PRIMARY KEY,
+            names INTEGER NOT NULL REFERENCES Strings(id),
+            descriptions INTEGER NOT NULL REFERENCES Strings(id),
+            country TEXT
+        );
+        CREATE TABLE IF NOT EXISTS CompanyPeople (
+            id INTEGER PRIMARY KEY,
+            company_id INTEGER NOT NULL REFERENCES Companies(id),
+            person_id INTEGER NOT NULL REFERENCES People(id),
+            role TEXT,
+            start_date TEXT,
+            end_date TEXT
+        );
+    ").map_err(|e| format!("Error creating the Company tables: {}", e))?;
     db.execute_batch("
         CREATE TABLE IF NOT EXISTS Characters (
             id INTEGER PRIMARY KEY,
@@ -88,7 +107,7 @@ pub fn create_tables(db: &Connection) -> Result<(), String> {
             descriptions INTEGER NOT NULL REFERENCES Strings(id),
             source_type TEXT NOT NULL
         );
-        CREATE TABLE IF NOT EXISTS SourceLinks (
+        CREATE TABLE IF NOT EXISTS SourceRelatedLinks (
             id INTEGER PRIMARY KEY,
             source_id INTEGER NOT NULL REFERENCES Sources(id),
             url TEXT NOT NULL,
@@ -120,28 +139,27 @@ pub fn create_tables(db: &Connection) -> Result<(), String> {
             id INTEGER PRIMARY KEY,
             source_id INTEGER NOT NULL REFERENCES Sources(id),
             person_id INTEGER NOT NULL REFERENCES People(id),
-            UNIQUE(source_id, person_id)
+            role TEXT NOT NULL
         );
-        CREATE TABLE IF NOT EXISTS SourcePersonRoles (
+        CREATE TABLE IF NOT EXISTS SourcePersonVoiceActors (
             id INTEGER PRIMARY KEY,
             source_person_id INTEGER NOT NULL REFERENCES SourcePeople(id),
-            role TEXT NOT NULL,
-            voice_actor_character_id INTEGER REFERENCES Characters(id),
-            UNIQUE(source_person_id, role),
-            CHECK(
-                CASE role
-                    WHEN 'VoiceActor' THEN
-                        voice_actor_character_id IS NOT NULL
-                    WHEN NOT 'VoiceActor' THEN
-                        voice_actor_character_id IS NULL
-                END
-            )
+            character_id INTEGER NOT NULL REFERENCES Characters(id),
+            lang TEXT NOT NULL,
+            UNIQUE(source_person_id, character_id, lang)
         );
         CREATE TABLE IF NOT EXISTS SourceCharacters (
             id INTEGER PRIMARY KEY,
             source_id INTEGER NOT NULL REFERENCES Sources(id),
             character_id INTEGER NOT NULL REFERENCES Characters(id),
             UNIQUE(source_id, character_id)
+        );
+        CREATE TABLE IF NOT EXISTS SourceCompanies (
+            id INTEGER PRIMARY KEY,
+            source_id INTEGER NOT NULL REFERENCES Sources(id),
+            company_id INTEGER NOT NULL REFERENCES Companies(id),
+            company_role TEXT,
+            UNIQUE(source_id, company_id, company_role)
         );
     ").map_err(|e| format!("Error creating the Sources tables: {}", e))?;
     Ok(())

@@ -1,0 +1,59 @@
+use serde_derive::{Deserialize, Serialize};
+
+use super::{Lang};
+use crate::{impl_sql_simple_enum};
+use crate::simple_enum::{SimpleEnum};
+
+/// The role that a company can have in the creation of a source
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub enum CompanyRole {
+    Developer,
+    Publisher,
+    Editor,
+}
+impl SimpleEnum for CompanyRole {
+    fn all() -> &'static [CompanyRole] {
+        &[
+            Self::Developer,
+            Self::Publisher,
+            Self::Editor,
+        ]
+    }
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::Developer => "Developer",
+            Self::Publisher => "Publisher",
+            Self::Editor => "Editor",
+        }
+    }
+}
+impl_sql_simple_enum!(CompanyRole);
+
+/// The role a person can have in the creation of a source
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub enum PersonRole {
+    Writer, // 著者
+    Illustrator, // イラスト
+    ComicArtist, // 漫画家 (絵だけ)
+    /// A character's ID with their spoken language
+    VoiceActor(u64, Lang), // 声優
+}
+
+/// The role a person can have in a company
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub enum CompanyPersonRole {
+    CEO,
+}
+impl SimpleEnum for CompanyPersonRole {
+    fn all() -> &'static [CompanyPersonRole] {
+        &[
+            Self::CEO,
+        ]
+    }
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::CEO => "CEO",
+        }
+    }
+}
+impl_sql_simple_enum!(CompanyPersonRole);

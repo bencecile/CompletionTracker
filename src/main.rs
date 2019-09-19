@@ -1,3 +1,4 @@
+mod api_json;
 mod run_info;
 mod static_server;
 
@@ -13,11 +14,26 @@ fn main() -> Result<(), String> {
         .map_err(|e| format!("Error in the runInfo.json: {}", e))?;
     let trackers = run_info.trackers()?;
 
-    let sources_connection = completion_tracker_lib::init_source_db()?;
+    let sources_db = completion_tracker_lib::init_source_db()?;
 
     // Start up the server
     let server = Server::new(run_info.socket_addr(), move |req| router!(req,
         (GET) (/jsbundle) => { StaticServer.serve_bundle_js() },
+
+        (POST) (/api/search) => {
+            crate::api_json::search(&sources_db, req)
+        },
+
+        (POST) (/api/universeTag/create) => {
+            crate::api_json::universe_tag::create_request(&sources_db, req)
+        },
+        (POST) (/api/universeTags/read) => {
+            crate::api_json::universe_tag::read_request(&sources_db, req)
+        },
+        (POST) (/api/universeTags/readRoot) => {
+            crate::api_json::universe_tag::read_root_request(&sources_db, req)
+        },
+
         _ => {
             if req.method() == "GET" {
                 // Send the main page, inserting the path after the "#"
@@ -25,7 +41,7 @@ fn main() -> Result<(), String> {
                 StaticServer.serve_main_html()
             } else {
                 // The only time we should ever hit this is if the frontend misses a call
-                //  or somebody navigates somewhere else directly
+                //  or somebody calls this directly
                 // In both cases, a normal 404 should be enough to tell them to
                 //  take their business elsewhere
                 Response::empty_404()

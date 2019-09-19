@@ -8,24 +8,27 @@ pub fn create(db: &ConnectionHolder, creator: CharacterCreator) -> Result<u64, S
 unimplemented!();
     let db = db.lock();
 
-    db.execute_batch("
-        BEGIN TRANSACTION;
+    let transaction = db.transaction()
+        .map_err(|e| e.to_string())?;
 
+    transaction.execute_batch("
         CREATE TEMPORARY TABLE IF NOT EXISTS TempCharacterStrings (
-            names INTEGER REFERENCES Strings(id),
-            descriptions INTEGER REFERENCES Strings(id)
+            names INTEGER,
+            descriptions INTEGER
         );
         CREATE TEMPORARY TABLE IF NOT EXISTS TempCharacter (
-            character_id INTEGER NOT NULL REFERENCES Characters(id)
+            character_id INTEGER NOT NULL
         );
+        DELETE FROM TempCharacterStrings;
+        DELETE FROM TempCharacter;
     ").map_err(|e| e.to_string())?;
 
-    api::insert_new_lang_map(&creator.names, &db)?;
-    db.execute_batch("
+    api::insert_new_lang_map(&creator.names, &transaction)?;
+    transaction.execute_batch("
         INSERT INTO TempCharacterStrings (names, descriptions) VALUES (last_insert_id(), NULL);
     ").map_err(|e| e.to_string())?;
-    api::insert_new_lang_map(&creator.descriptions, &db)?;
-    db.execute_batch("
+    api::insert_new_lang_map(&creator.descriptions, &transaction)?;
+    transaction.execute_batch("
         UPDATE TempCharacterStrings SET descriptions=last_insert_id();
 
         INSERT INTO Characters (names, description)
@@ -35,4 +38,9 @@ unimplemented!();
     ").map_err(|e| e.to_string())?;
 
     // TODO The aliases and related characters
+
+    transaction.commit()
+        .map_err(|e| e.to_string())?;
+
+    // TODO Get the created ID
 }

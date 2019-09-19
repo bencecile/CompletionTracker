@@ -6,7 +6,7 @@
 <script>
 export default {
     created() {
-        document.title = this.$t("completion_tracker");
+        this.$setDocumentTitle(this.$t("home"));
     }
 }
 </script>

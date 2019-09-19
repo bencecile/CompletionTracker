@@ -1,10 +1,10 @@
 <template>
     <div>
         <label for="contentLangPicker">
-            {{ $t("current_content_lang", [$t(value)]) }}
+            {{ $t("current_content_lang") }}
         </label>
         <select id="contentLangPicker"
-            :value="value" @change="$emit('input', $event.target.value)">
+            :value="$contentLang" @change="$contentLang = $event.target.value">
             <option v-for="lang in allContentLangs()" :key="lang"
                 :value="lang">
                 {{ $t(lang) }}
@@ -14,18 +14,8 @@
 </template>
 <script>
 export default {
-    props: {
-        // Must be a current content lang
-        value: {
-            type: String,
-            required: true,
-            validator(value) {
-                return value in CompletionTracker.contentLang.all();
-            },
-        },
-    },
     methods: {
-        allContentLangs() { return CompletionTracker.contentLang.all() },
+        allContentLangs() { return CompletionTrackerContentLang.all() },
     }
 }
 </script>

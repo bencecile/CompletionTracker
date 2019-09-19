@@ -1,42 +1,74 @@
 <template>
-    <div>
+    <div @keyup.enter="createNew">
         <h2>{{ $t("universe_tag_new") }}</h2>
-        <contentLangPicker v-model="currentContentLang"/>
 
         <div>
             <label for="name">{{ $t("name") }}</label>
             <input id="name" type="text"
-                v-model="newUniverseTag.names[currentContentLang]"/>
+                v-model="newUniverseTag.names[$contentLang]"/>
+        </div>
+        <div>
+            <label for="description">{{ $t("description") }}</label>
+            <input id="description" type="text"
+                v-model="newUniverseTag.descriptions[$contentLang]"/>
         </div>
 
-        <button @click="createNew">{{ $t("create") }}</button>
+        <relatedLinkInput v-model="newUniverseTag.related_links" />
+
+        <button
+            :disabled="isSent || createdId"
+            @click="createNew">
+            {{ $t("create") }}
+        </button>
+        <div v-if="errorMessage">{{ $t("error_occurred", [errorMessage]) }}</div>
+        <router-link :to="makeNewLink()" :hidden="!createdId">
+            {{ $t("universe_tag_new_link") }}
+        </router-link>
     </div>
 </template>
 <script>
 export default {
     data() {
         return {
-            currentContentLang: CompletionTracker.contentLang.fromLocale(this.$i18n),
             isSent: false,
+            createdId: null,
+            errorMessage: null,
             newUniverseTag: {
-                names: CompletionTracker.contentLang.emptyMap(),
-                descriptions: CompletionTracker.contentLang.emptyMap(),
-                relatedLinks: [],
+                names: CompletionTrackerContentLang.emptyLangMap(),
+                descriptions: CompletionTrackerContentLang.emptyLangMap(),
                 parents: [],
+                children: [],
+                related_universe_tags: [],
+                related_links: [],
             },
         };
     },
     methods: {
         createNew() {
-            if (isSent) { return; }
-            isSent = true;
+            if (this.isSent) { return; }
+            this.isSent = true;
+            this.errorMessage = null;
 
-            alert(JSON.stringify(this.newUniverseTag));
-            isSent = false;
+            console.log("Creating a new universe tag...");
+
+            this.$api.createUniverseTag(this.newUniverseTag, (id) => {
+                console.log(`Created universe tag ${id}`);
+                this.createdId = id;
+                this.isSent = false;
+            }, (error) => {
+                this.errorMessage = error;
+                console.error(`Failed to create a Universe Tag: ${error}`);
+                this.isSent = false;
+            });
+        },
+        makeNewLink() { return `/universeTag/${this.createdId}` },
+        addNewRelatedLink() {
+            // Push a new link with description
+            this.related_links.push(["", ""]);
         },
     },
     created() {
-        document.title = this.$t("universe_tag_new") + " | " + this.$t("completion_tracker");
+        this.$setDocumentTitle(this.$t("universe_tag_new"));
     },
 }
 </script>

@@ -5,12 +5,14 @@ pub mod universe_tag;
 
 use rusqlite::{Connection, Result as SqlResult, Row, Statement};
 
-use crate::{impl_sql_simple_enum};
-use crate::simple_enum::{SimpleEnum};
-use crate::sources::source_types::{
-    Lang, LangMap,
-    RelatedLink, LinkType,
-    Relation,
+use crate::{
+    impl_sql_simple_enum,
+    simple_enum::{SimpleEnum},
+    sources::source_types::{
+        Lang, LangMap,
+        RelatedLink, LinkType,
+        Relation,
+    },
 };
 
 /// These are the Relations between items in the database.

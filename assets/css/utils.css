@@ -1,0 +1,6 @@
+.disappear { display: none; }
+
+.grid-centerH { justify-self: center; }
+.grid-centerV { align-self: center; }
+
+.tableTitle { font-size: 120%; }

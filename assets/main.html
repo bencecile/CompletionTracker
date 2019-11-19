@@ -17,30 +17,34 @@
             });
             const router = new VueRouter({
                 mode: "history",
-                routes: [
-                    {
-                        path: "/",
-                        component: Vue.component("homeView"),
-                    }, {
-                        path: "/sources",
-                        component: Vue.component("sourcesView"),
-                    }, {
-                        path: "/universeTags",
-                        component: Vue.component("universeTagsView"),
-                    }, {
-                        path: "/universeTags/new",
-                        component: Vue.component("universeTagsNewView"),
-                    }, {
-                        path: "/universeTag/:id",
-                        component: Vue.component("universeTagView"),
-                        props: (route) => ({
-                            id: Number.parseInt(route.params["id"]),
-                        }),
-                    }, {
-                        path: "/*",
-                        component: Vue.component("error404View"),
-                    },
-                ],
+                routes: [{
+                    path: "/",
+                    component: Vue.component("homeView"),
+                }, {
+                    path: "/sources",
+                    component: Vue.component("sourcesView"),
+                }, {
+                    path: "/universeTags",
+                    component: Vue.component("universeTagsView"),
+                }, {
+                    path: "/universeTag/new",
+                    component: Vue.component("universeTagNewView"),
+                }, {
+                    path: "/universeTag/:id",
+                    component: Vue.component("universeTagView"),
+                    props: (route) => ({
+                        id: Number.parseInt(route.params.id),
+                    }),
+                }, {
+                    path: "/universeTag/:id/edit",
+                    component: Vue.component("universeTagEditView"),
+                    props: (route) => ({
+                        id: Number.pareseInt(route.params.id),
+                    }),
+                }, {
+                    path: "/*",
+                    component: Vue.component("error404View"),
+                }],
             });
 
             // Global settings should be read and applied here

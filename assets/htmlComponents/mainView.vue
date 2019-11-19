@@ -1,5 +1,5 @@
 <template>
-    <div id="mainContainer">
+    <div id="bodyContainer">
         <div id="header">
             <router-link to="/">{{ $t("home") }}</router-link>
             <router-link to="/sources">{{ $t("sources") }}</router-link>
@@ -14,6 +14,7 @@
 <script>
 export default {
     data() {
+        // TODO We may want to highlight the link where we are currently
         return {
         };
     },
@@ -26,20 +27,25 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-family: serif;
+    font-family: sans-serif;
 }
-#mainContainer {
+#bodyContainer {
     min-height: 100%;
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: min-content 1fr;
-    place-items: start center;
+    justify-items: center;
 
-    row-gap: 2em;
+    row-gap: 1em;
 }
 #header {
-    padding: 0.5em;
     width: calc(100% - 1em);
+    padding: 0.5em;
     border-bottom: 2px solid black;
+}
+#main {
+    max-width: calc(100% - 1em);
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 }
 </style>

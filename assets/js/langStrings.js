@@ -42,10 +42,28 @@ const allLangStrings = {
         [LOCALE_JA]: "名",
     },
 
+    error_bad_route_params: {
+        [LOCALE_EN]: "Bad parameters on this route",
+        [LOCALE_JA]: "この道路で不適な引数がある",
+    },
+
+    search_no_results: {
+        [LOCALE_EN]: "Nothing was found from this search",
+        [LOCALE_JA]: "この検索で何も見つけなかった",
+    },
+
     // -------- Any commands that go on buttons --------
+    apply: {
+        [LOCALE_EN]: "Apply",
+        [LOCALE_JA]: "適用",
+    },
     create: {
         [LOCALE_EN]: "Create",
         [LOCALE_JA]: "作成",
+    },
+    edit: {
+        [LOCALE_EN]: "Edit",
+        [LOCALE_JA]: "編集",
     },
     remove: {
         [LOCALE_EN]: "Remove",
@@ -57,11 +75,20 @@ const allLangStrings = {
         [LOCALE_EN]: "Add a new Related Link",
         [LOCALE_JA]: "新しい関連リンクを追加する",
     },
+    related_links: {
+        [LOCALE_EN]: "Related Links",
+        [LOCALE_JA]: "関連リンクス",
+    },
+    related_links_none: {
+        [LOCALE_EN]: "There are no Related Links",
+        [LOCALE_JA]: "関連リンクは存在しない",
+    },
 
     sources: {
         [LOCALE_EN]: "Sources",
         [LOCALE_JA]: "ソースズ",
     },
+
     universe_tag: {
         [LOCALE_EN]: "Universe Tag",
         [LOCALE_JA]: "世界ターグ",
@@ -69,6 +96,18 @@ const allLangStrings = {
     universe_tags: {
         [LOCALE_EN]: "Universe Tags",
         [LOCALE_JA]: "世界ターグズ",
+    },
+    universe_tag_edit: {
+        [LOCALE_EN]: "Edit a Universe Tag",
+        [LOCALE_JA]: "世界ターグを編集",
+    },
+    universe_tag_child_add: {
+        [LOCALE_EN]: "Add a Universe Tag as a child",
+        [LOCALE_JA]: "世界ターグを子として追加",
+    },
+    universe_tag_parent_add: {
+        [LOCALE_EN]: "Add a Universe Tag as a parent",
+        [LOCALE_JA]: "世界ターグを親として追加",
     },
     universe_tag_new: {
         [LOCALE_EN]: "New Universe Tag",

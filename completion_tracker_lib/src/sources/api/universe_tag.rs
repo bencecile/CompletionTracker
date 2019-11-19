@@ -3,7 +3,7 @@ pub use self::create::{create};
 mod read;
 pub use self::read::{read_root_level_ids, read_list};
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::sources::source_types::{LangMap, RelatedLink, Relation};
 

@@ -4,8 +4,10 @@ mod static_server;
 
 use rouille::{Response, Server, router};
 
-use crate::run_info::{RunInfo};
-use crate::static_server::{StaticServer};
+use crate::{
+    run_info::{RunInfo},
+    static_server::{StaticServer},
+};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -21,17 +23,17 @@ fn main() -> Result<(), String> {
         (GET) (/jsbundle) => { StaticServer.serve_bundle_js() },
 
         (POST) (/api/search) => {
-            crate::api_json::search(&sources_db, req)
+            api_json::search(&sources_db, req)
         },
 
         (POST) (/api/universeTag/create) => {
-            crate::api_json::universe_tag::create_request(&sources_db, req)
+            api_json::universe_tag::create_request(&sources_db, req)
         },
         (POST) (/api/universeTags/read) => {
-            crate::api_json::universe_tag::read_request(&sources_db, req)
+            api_json::universe_tag::read_request(&sources_db, req)
         },
         (POST) (/api/universeTags/readRoot) => {
-            crate::api_json::universe_tag::read_root_request(&sources_db, req)
+            api_json::universe_tag::read_root_request(&sources_db, req)
         },
 
         _ => {

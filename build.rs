@@ -19,6 +19,7 @@ mod all_js {
 
     const COMPONENT_DIR: &'static str = "assets/htmlComponents";
     const JS_DIR: &'static str = "assets/js";
+    const CSS_DIR: &'static str = "assets/css";
 
     // Some constants for the tags that we will be finding
     const TEMPLATE_TAG: &'static str = "<template>";
@@ -37,6 +38,7 @@ mod all_js {
         append_js_files(&mut bundled_js);
         append_vue_components(&mut bundled_js);
         append_svg_components(&mut bundled_js);
+        append_css(&mut bundled_js);
 
         bundled_js
     }
@@ -53,6 +55,15 @@ mod all_js {
         // Return the slice of the data that will go right in-between the tags
         // Also trim it so we lose any unneeded whitespace
         search_data[start_index..end_index].trim()
+    }
+
+    fn create_css_function(css_data: &str) -> String {
+        format!(r#"(function() {{
+    "use strict";
+    const style = document.createElement("style");
+    style.innerHTML = `{}`;
+    document.head.appendChild(style);
+}})();"#, css_data)
     }
 
     fn append_js_files(bundled_js: &mut Vec<u8>) {
@@ -108,10 +119,7 @@ mod all_js {
             let style_block = if style_data.is_empty() {
                 String::new()
             } else {
-                format!(r#"
-    const style = document.createElement("style");
-    style.innerHTML = `{}`;
-    document.head.appendChild(style);"#, style_data)
+                create_css_function(style_data)
             };
 
             // Write a slightly elaborate JS string into our component data
@@ -133,7 +141,7 @@ mod all_js {
     fn append_svg_components(bundled_js: &mut Vec<u8>) {
         for svg_file in super::read_dir(COMPONENT_DIR, "svg", true) {
             let svg_data = fs::read_to_string(&svg_file)
-                .expect("Failed to read a component");
+                .expect("Failed to read an svg file");
 
             write!(bundled_js, r#"
 (function() {{
@@ -146,6 +154,16 @@ mod all_js {
 }})();"#, file_name=svg_file.file_stem().unwrap().to_str().unwrap(),
             svg_data=svg_data)
                 .expect("Failed to write the svg component data");
+        }
+    }
+
+    fn append_css(bundled_js: &mut Vec<u8>) {
+        for css_file in super::read_dir(CSS_DIR, "css", false) {
+            let css_data = fs::read_to_string(&css_file)
+                .expect("Failed to read a css file");
+
+            write!(bundled_js, "{}", create_css_function(&css_data))
+                .expect("Failed to write the css function");
         }
     }
 }

@@ -1,7 +1,9 @@
-use std::fs::{DirBuilder};
-use std::path::{Path, PathBuf};
+use std::{
+    fs::{DirBuilder},
+    path::{Path, PathBuf},
+};
 
-use serde_derive::{Deserialize};
+use serde::{Deserialize};
 
 const DEFAULT_TRACKER_NAME: &'static str = "Default Tracker";
 
@@ -59,7 +61,7 @@ impl Tracker {
                 } else {
                     DEFAULT_TRACKER_NAME.to_string()
                 };
-                
+
                 // Don't let them use the any tracking name more than once
                 for other_tracker in trackers.iter() {
                     if other_tracker.name() == name {

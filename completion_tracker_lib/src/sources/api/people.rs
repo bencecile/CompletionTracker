@@ -1,7 +1,7 @@
 mod create;
 pub use self::create::{create};
 
-use serde_derive::{Deserialize};
+use serde::{Deserialize};
 
 use crate::sources::source_types::{LangMap, LangMapList};
 

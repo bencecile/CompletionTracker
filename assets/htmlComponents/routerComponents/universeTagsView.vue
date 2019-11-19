@@ -1,16 +1,17 @@
 <template>
     <div>
-        <router-link to="/universeTags/new">{{ $t("universe_tag_new_create") }}</router-link>
+        <router-link to="/universeTag/new">{{ $t("universe_tag_new_create") }}</router-link>
+        <h2>{{ $t("universe_tags") }}</h2>
         <div v-if="state === $states.Loading">
             {{ $t("loading") }}
         </div>
         <div v-if="state === $states.Error">
-            {{ $t("error_occurred", [errorMessage]) }}
+            {{ $t("error_occured", [errorMessage]) }}
         </div>
         <div class="rootUniverseTags" v-if="state === $states.Success">
-            <h1>{{ $t("universe_tags") }}</h1>
             <div v-for="universeTag in rootUniverseTags" :key="universeTag.id">
-                <router-link :to="'/universeTag/' + universeTag.id">
+                <router-link :to="'/universeTag/' + universeTag.id"
+                    @click.native="setUniverseTagForNav(universeTag)">
                     {{ $langMapGet(universeTag.names) }}
                 </router-link>
             </div>
@@ -47,6 +48,10 @@ export default {
         setSuccessState(universeTags) {
             this.rootUniverseTags = universeTags;
             this.state = this.$states.Success;
+        },
+
+        setUniverseTagForNav(universeTag) {
+            this.$navHolder = universeTag;
         },
     },
 }

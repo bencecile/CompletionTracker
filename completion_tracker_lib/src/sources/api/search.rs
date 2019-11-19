@@ -1,6 +1,11 @@
-use serde_derive::{Deserialize, Serialize};
+mod search_score;
+
+use serde::{Deserialize, Serialize};
 use rusqlite::{Connection};
 
+use self::{
+    search_score::{SearchScore},
+};
 use crate::db_link::{ConnectionHolder};
 
 #[derive(Copy, Clone, Deserialize, Serialize)]
@@ -47,7 +52,6 @@ pub struct SearchResult {
     pub search_score: f64,
 }
 
-// TODO May be able to filter out the bottom 80% of search results if we get A LOT of results
 pub fn search(db: &ConnectionHolder, query: SearchQuery) -> Result<SearchResults, String> {
     let db = db.lock();
 
@@ -55,7 +59,6 @@ pub fn search(db: &ConnectionHolder, query: SearchQuery) -> Result<SearchResults
         search_names_and_descriptions(&db, &query.query, item_type)
     } else {
         let mut all_search_results = Vec::new();
-
         for &item_type in ItemType::all() {
             all_search_results.append(
                 &mut search_names_and_descriptions(&db, &query.query, item_type)?
@@ -68,6 +71,7 @@ pub fn search(db: &ConnectionHolder, query: SearchQuery) -> Result<SearchResults
 
 fn search_names_and_descriptions(db: &Connection, query: &str, item_type: ItemType)
 -> Result<SearchResults, String> {
+    // TODO We will want to get aliases for sources
     let mut statement = db.prepare(&format!("
         SELECT {0}.id, Strings.english, Strings.japanese FROM Strings
             INNER JOIN {0}
@@ -78,46 +82,69 @@ fn search_names_and_descriptions(db: &Connection, query: &str, item_type: ItemTy
         let english: Option<String> = row.get(1)?;
         let japanese: Option<String> = row.get(2)?;
 
-        let scores = &[
-            english.map_or(0_f64, |english| make_search_score(&english, query)),
-            japanese.map_or(0_f64, |japanese| make_search_score(&japanese, query)),
+        let scores = vec![
+            english.map(|english| make_search_score(&english, query)),
+            // TODO Convert any hiragana to katakana
+            //  This will give use a nice and easy search interface
+            japanese.map(|japanese| make_search_score(&japanese, query)),
         ];
-
-        let mut max_score = scores[0];
-        for &score in &scores[1..] {
-            if score > max_score {
-                max_score = score;
+        let mut top_score = None;
+        for score in scores {
+            if let Some(score) = score {
+                if let Some(top_score) = top_score.as_mut() {
+                    if &score > top_score {
+                        *top_score = score;
+                    }
+                } else {
+                    top_score = Some(score);
+                }
             }
         }
 
-        Ok(SearchResult {
-            id: id as u64,
-            item_type,
-            search_score: max_score,
-        })
+        Ok( (id as u64, top_score.unwrap()) )
     }).map_err(|e| e.to_string())?;
 
-    let mut search_results = Vec::new();
+    let mut search_results = SearchResults::new();
     for search_result in mapped_results {
-        let search_result = search_result.map_err(|e| e.to_string())?;
-
-        // Don't include the ones that didn't get matched at all
-        if search_result.search_score.abs() > 1e-10 {
-            search_results.push(search_result);
+        let (id, search_score) = search_result.map_err(|e| e.to_string())?;
+        // Search the ones that we have to see if we can combine any search results
+        let try_is_dup = search_results.iter_mut()
+        .find(|result| result.id == id);
+        if let Some(found_search_result) = try_is_dup {
+            found_search_result.search_score += search_score.score();
+        } else {
+            search_results.push(SearchResult {
+                id,
+                item_type,
+                search_score: search_score.score(),
+            });
         }
     }
+
+    // Cutoff at 50% of the highest score
+    let top_score = search_results.iter()
+        .fold(0_f64, |top_score, search_result| {
+            if search_result.search_score > top_score {
+                search_result.search_score
+            } else {
+                top_score
+            }
+        });
+    let search_results = search_results.into_iter().filter(|search_result| {
+        search_result.search_score > (top_score * 0.50)
+    }).collect();
     Ok(search_results)
 }
 
 /// Good searching criteria:
-/// - Any haystack and query that match at the beginning should show up first
-/// - We should be able to match fragments of the query in the haystack
-/// - Matching a lot of characters should be able to out-score a small match
-/// - Matching the haystack entirely should come before the same full match but with a
-///   bigger haystack
+/// 1. Any haystack and query that match at the beginning should show up first
+/// 2. We should be able to match fragments of the query in the haystack
+/// 3. Matching a lot of characters should be able to out-score a small match
+/// 4. Matching the haystack entirely should come before the same full match but with a
+///    bigger haystack
 ///
 /// Returns the search score. Will be 0 if there was no match
-fn make_search_score(haystack: &str, query: &str) -> f64 {
+fn make_search_score(haystack: &str, query: &str) -> SearchScore {
     // Chain Score X Position
     // Search incrementally from the front of the haystack and query
     let query_chars: Vec<char> = query.chars().collect();
@@ -137,25 +164,7 @@ fn make_search_score(haystack: &str, query: &str) -> f64 {
         None
     };
 
-    // Figures out the chain score for a matched chain of characters
-    let chain_score = |matched_char_count, haystack_index| {
-        let haystack_start_index = haystack_index - matched_char_count;
-
-        // The basic score that we reduce based on penalties
-        let base_score = matched_char_count as f64;
-        // Penalize matches that happen later in the haystack
-        // Will be 1 if the match starts right at the beginning
-        // Limit down to 0 at the end of the haystack
-        let late_match_penalty = 1_f64 - (haystack_start_index as f64) / (haystack_len as f64);
-        // Penalizes matches that don't get the entire haystack
-        let haystack_fragment_penalty = (matched_char_count as f64) / (haystack_len as f64);
-        // Penalizes matches that don't use up the entire query
-        let query_fragment_penalty = (matched_char_count as f64) / (query_len as f64);
-
-        base_score * late_match_penalty * haystack_fragment_penalty * query_fragment_penalty
-    };
-
-    let mut search_score = 0_f64;
+    let mut search_score = SearchScore::new(query_len, haystack_len);
     // The number of consecutively matched chars (currently)
     let mut matched_chars: Option<usize> = None;
     // The character that we haven't found yet
@@ -173,14 +182,14 @@ fn make_search_score(haystack: &str, query: &str) -> f64 {
             }
         } else {
             if let Some(matched_char_count) = matched_chars.take() {
-                search_score += chain_score(matched_char_count, haystack_index);
+                search_score.update(matched_char_count, haystack_index);
             }
         }
     }
 
     if let Some(matched_char_count) = matched_chars.take() {
         // Using the length will ensure that the start_index can be 0 if the match starts at 0
-        search_score += chain_score(matched_char_count, haystack_len);
+        search_score.update(matched_char_count, haystack_len);
     }
 
     search_score

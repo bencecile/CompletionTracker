@@ -2,18 +2,7 @@
     <div @keyup.enter="createNew">
         <h2>{{ $t("universe_tag_new") }}</h2>
 
-        <div>
-            <label for="name">{{ $t("name") }}</label>
-            <input id="name" type="text"
-                v-model="newUniverseTag.names[$contentLang]"/>
-        </div>
-        <div>
-            <label for="description">{{ $t("description") }}</label>
-            <input id="description" type="text"
-                v-model="newUniverseTag.descriptions[$contentLang]"/>
-        </div>
-
-        <relatedLinkInput v-model="newUniverseTag.related_links" />
+        <universeTagEditor :universeTag="newUniverseTag"/>
 
         <button
             :disabled="isSent || createdId"
@@ -36,10 +25,10 @@ export default {
             newUniverseTag: {
                 names: CompletionTrackerContentLang.emptyLangMap(),
                 descriptions: CompletionTrackerContentLang.emptyLangMap(),
+                related_links: [],
                 parents: [],
                 children: [],
                 related_universe_tags: [],
-                related_links: [],
             },
         };
     },

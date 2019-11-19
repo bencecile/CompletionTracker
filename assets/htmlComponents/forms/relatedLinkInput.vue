@@ -1,7 +1,7 @@
 <template>
     <div class="relatedLinkInputContainer">
         <button @click="addNewRelatedLink">{{ $t("related_link_add_new") }}</button>
-        <div class="relatedLinkInputRow">
+        <div v-if="value.length > 0" class="relatedLinkInputRow">
             <div>URL</div>
             <div>{{ $t("description") }}</div>
         </div>
@@ -32,9 +32,10 @@ export default {
 .relatedLinkInputContainer {
     display: grid;
     grid-template-columns: 1fr;
+    row-gap: 0.25em;
 }
 .relatedLinkInputRow {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 15em 20em min-content;
 }
 </style>

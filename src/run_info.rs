@@ -1,10 +1,13 @@
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
-use std::path::{Path, PathBuf};
+use std::{
+    net::{Ipv4Addr, SocketAddr, SocketAddrV4},
+    path::{Path, PathBuf},
+};
+use serde::{Deserialize};
 
-use serde_derive::{Deserialize};
-
-use completion_tracker_lib::tracking::{Tracker, TrackingInfo};
-use completion_tracker_lib::utils;
+use completion_tracker_lib::{
+    tracking::{Tracker, TrackingInfo},
+    utils,
+};
 
 const RUN_INFO_FILE: &'static str = "runInfo.json";
 

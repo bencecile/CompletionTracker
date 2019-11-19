@@ -1,14 +1,18 @@
 mod roles;
-pub use roles::{CompanyRole, CompanyPersonRole, PersonRole};
+pub use roles::{CompanyRole, PersonRole};
 
 use std::collections::{BTreeMap};
 
-use serde::ser::{SerializeStruct};
-use serde_derive::{Deserialize, Serialize};
+use serde::{
+    Deserialize, Serialize,
+    ser::{SerializeStruct},
+};
 use url::{Url, Host};
 
-use crate::{impl_sql_simple_enum};
-use crate::simple_enum::{SimpleEnum};
+use crate::{
+    impl_sql_simple_enum,
+    simple_enum::{SimpleEnum},
+};
 
 #[derive(Copy, Clone, Deserialize, Serialize, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Lang {
@@ -91,6 +95,7 @@ impl RelatedLink {
     pub fn link_type(&self) -> LinkType { self.link_type }
     pub fn descriptions(&self) -> &LangMap { &self.descriptions }
 }
+/// Implemented because URL is not serializable
 impl serde::Serialize for RelatedLink {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut s = serializer.serialize_struct("RelatedLink", 3)?;
@@ -137,7 +142,7 @@ impl LinkType {
     }
 }
 
-#[derive(Copy, Clone, Serialize)]
+#[derive(Copy, Clone, Deserialize, Serialize)]
 pub enum SourceType {
     Comic, // 漫画
     ComicRunning, // 連載の漫画話 (原点は関係のないこと)

@@ -10,10 +10,6 @@ build = "build.rs"
 [dependencies]
 completion_tracker_lib = { path = "./completion_tracker_lib" }
 
-# The HTTP server
 rouille = "3.0.0"
-
-# Use Serde's JSON library for JSON serialization
-serde = "1.0.99"
-serde_derive = "1.0.99"
+serde = { version = "1.0.99", features = ["derive"] }
 serde_json = "1.0.40"

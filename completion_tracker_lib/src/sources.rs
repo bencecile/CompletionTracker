@@ -69,14 +69,6 @@ pub fn create_tables(db: &Connection) -> Result<(), String> {
             descriptions INTEGER NOT NULL REFERENCES Strings(id),
             country TEXT
         );
-        CREATE TABLE IF NOT EXISTS CompanyPeople (
-            id INTEGER PRIMARY KEY,
-            company_id INTEGER NOT NULL REFERENCES Companies(id),
-            person_id INTEGER NOT NULL REFERENCES People(id),
-            role TEXT,
-            start_date TEXT,
-            end_date TEXT
-        );
     ").map_err(|e| format!("Error creating the Company tables: {}", e))?;
     db.execute_batch("
         CREATE TABLE IF NOT EXISTS Characters (

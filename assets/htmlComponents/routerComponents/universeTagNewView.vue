@@ -1,8 +1,6 @@
 <template>
     <div @keyup.enter="createNew">
-        <h2>{{ $t("universe_tag_new") }}</h2>
-
-        <universeTagEditor :universeTag="newUniverseTag"/>
+        <h2 class="textCenter">{{ $t("universe_tag_new") }}</h2>
 
         <button
             :disabled="isSent || createdId"
@@ -13,6 +11,8 @@
         <router-link :to="makeNewLink()" :hidden="!createdId">
             {{ $t("universe_tag_new_link") }}
         </router-link>
+
+        <universeTagEditor :universeTag="newUniverseTag"/>
     </div>
 </template>
 <script>

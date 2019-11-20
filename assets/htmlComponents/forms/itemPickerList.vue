@@ -2,8 +2,8 @@
     <div class="itemPickerList">
         <div class="grid-centerH tableTitle">{{ itemDescription }}</div>
         <div v-for="(item, i) in fetchedItems" :key="item.id" class="itemPickerListRow">
-            <div>{{ $langMapGet(item.names) }}</div>
             <button @click="removeFetchedItem(i)">{{ $t("remove") }}</button>
+            <div>{{ $langMapGet(item.names) }}</div>
         </div>
         <itemPicker @input="pushFetchedItem" :itemType="itemType"/>
     </div>
@@ -39,12 +39,12 @@ export default {
 .itemPickerList {
     display: grid;
     grid-template-columns: 1fr;
-    row-gap: 0.1em;
+    row-gap: 0.25em;
 }
 .itemPickerListRow {
     display: grid;
-    grid-template-columns: 1fr min-content;
-    row-gap: 0.25em;
+    grid-template-columns: min-content 1fr;
     column-gap: 0.25em;
+    align-items: center;
 }
 </style>

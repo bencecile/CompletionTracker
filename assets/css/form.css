@@ -3,4 +3,5 @@
     grid-template-columns: min-content 1fr;
     row-gap: 0.25em;
     column-gap: 0.5em;
+    align-items: center;
 }

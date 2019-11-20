@@ -1,15 +1,14 @@
 # ToDo
+- Universe Tag - related universe tags
+    - Be able to change on Create and Update
 - Create the UPDATE Api for Universe Tags
     - Back end
     - Front end
     - Test that it all works
-- Universe Tag - related universe tags
-    - Be able to change on Create and Update
 - Create the Delete API for Universe Tags
     - Backend
     - Frontend
     - Test
-- Exclude search results that match less than 50% of the query
 - People
     - Create
         - Backend
@@ -35,15 +34,18 @@
     - Be able to complete sources
     - Add a date field entry for the completed date of a source (UI)
     - Add a "Completed Today" button (UI)
-    - Make a setting to change the time that "Today" changes (usually hours after midnight)
-        - This is for the "Completed Today" button
-        - UI only. Should cache using LocalStorage
 - Create a different view that is specifically for completing sources (should be the only place to do this)
     - Be able to search for sources directly and display the search results directly
         - Show the source name, description(?), date input field, completed today button
     - Be able to search for other item types and pick one to generate the list of sources
         - Show the source name, the item type's name, date input field, completed today button
     - Format them in a table
+
+- Make browser side settings
+- Put content (source) lang in the Settings
+- Put site language in the Settings
+- Make a setting to change the time that "Today" changes (usually hours after midnight)
+    - This is for the "Completed Today" button and probably other calculations
 
 - Switch to hyper with async as much as possible
 - Be able to complete things that aren't sources (yet)

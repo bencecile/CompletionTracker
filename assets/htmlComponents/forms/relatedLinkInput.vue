@@ -37,5 +37,6 @@ export default {
 .relatedLinkInputRow {
     display: grid;
     grid-template-columns: 15em 20em min-content;
+    column-gap: 0.5em;
 }
 </style>

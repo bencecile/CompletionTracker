@@ -29,9 +29,15 @@ export default {
 }
 </script>
 <style>
+.universeTagEditor {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 0.75em;
+}
 .universeTagParentsChildrenContainer {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 1em;
+    align-items: start;
 }
 </style>

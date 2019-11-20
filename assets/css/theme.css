@@ -6,3 +6,8 @@ body {
     background: #333;
     color: #eee;
 }
+
+input {
+    width: calc(100% - 2px - 8px);
+    padding: 2px 4px;
+}

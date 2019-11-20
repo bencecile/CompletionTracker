@@ -1,9 +1,11 @@
 use rouille::{Request, Response};
 
-use completion_tracker_lib::db_link::{ConnectionHolder};
-use completion_tracker_lib::sources::api::universe_tag::{
-    self,
-    UniverseTagCreator, UniverseTagReader,
+use completion_tracker_lib::{
+    db_link::{ConnectionHolder},
+    sources::api::universe_tag::{
+        self,
+        UniverseTagCreator, UniverseTagReader,
+    },
 };
 
 use crate::api_json::{APIResult};

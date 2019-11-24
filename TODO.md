@@ -2,40 +2,24 @@
 - Universe Tag - related universe tags
     - Be able to change on Create and Update
 - Create the UPDATE Api for Universe Tags
-    - Back end
-    - Front end
-    - Test that it all works
 - Create the Delete API for Universe Tags
-    - Backend
-    - Frontend
-    - Test
-- People
-    - Create
-        - Backend
-        - Frontend
-        - Test
-    - Read
-        - Backend
-        - Frontend
-        - Test
-    - Update
-    - Delete
-- Character
-    - Create
-    - Read
-    - Update
-    - Delete
-- Source
-    - Create
-    - Read
-    - Update
-    - Delete
-- Trackers
-    - Be able to complete sources
-    - Add a date field entry for the completed date of a source (UI)
-    - Add a "Completed Today" button (UI)
+- People Create
+- People Read
+- People Update
+- People Delete
+- Character Create
+- Character Read
+- Character Update
+- Character Delete
+- Source Create
+- Source Read
+- Source Update
+- Source Delete
+- Be able to complete sources
+- Add a date field entry for the completed date of a source (UI)
+- Add a "Completed Today" button (UI)
 - Create a different view that is specifically for completing sources (should be the only place to do this)
-    - Be able to search for sources directly and display the search results directly
+    - Be able to search for sources and display the search results directly on the page
         - Show the source name, description(?), date input field, completed today button
     - Be able to search for other item types and pick one to generate the list of sources
         - Show the source name, the item type's name, date input field, completed today button
@@ -48,5 +32,5 @@
     - This is for the "Completed Today" button and probably other calculations
 
 - Switch to hyper with async as much as possible
-- Be able to complete things that aren't sources (yet)
-- Be able to link completed entries with real sources
+- Be able to complete things that aren't (yet) sources
+- Be able to link completed entries with real sources (kinda retroactive)

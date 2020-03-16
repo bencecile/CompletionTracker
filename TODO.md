@@ -1,4 +1,19 @@
 # ToDo
+- Make a source completely self contained. It should only have stuff directly related to it.
+- The universe tags should then reference a source
+- The chronological order of sources should be separate from both universe tags and sources
+- Use table of strings for each use in the Sources
+    - 1 for names, 1 for descriptions, etc.
+- Have a separate table for primary language strings
+    - 1 of these accompanies each string table
+    - Make these ID's the same as the Sources (since they'll be 1-1)
+    - This way there's no doubly-linked references with less wasted space
+- Don't split up the names and stuff by language
+- Get rid of aliases and instead keep a list of names that are shown
+- Source Create
+- Source Read
+- Source Update
+- Source Delete
 - Universe Tag - related universe tags
     - Be able to change on Create and Update
 - Create the UPDATE Api for Universe Tags
@@ -11,10 +26,6 @@
 - Character Read
 - Character Update
 - Character Delete
-- Source Create
-- Source Read
-- Source Update
-- Source Delete
 - Be able to complete sources
 - Add a date field entry for the completed date of a source (UI)
 - Add a "Completed Today" button (UI)
